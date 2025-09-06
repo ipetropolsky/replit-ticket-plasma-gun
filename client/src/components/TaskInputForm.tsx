@@ -146,15 +146,12 @@ export const TaskInputForm = ({
                     <form onSubmit={handleJiraSubmit}>
                         <div className="space-y-4">
                             <div>
-                                <Label className="text-sm font-medium mb-2 block">
-                                    Ключ задачи или ссылка на JIRA
-                                </Label>
                                 <div className="flex gap-3">
                                     <Input
                                         type="text"
                                         className="flex-1"
-                                        style={{ padding: '16px', borderRadius: '12px', fontSize: '16px' }}
-                                        placeholder="Ключ задачи или ссылка на JIRA"
+                                        style={{ padding: '16px', borderRadius: '12px', fontSize: '16px', height: '48px' }}
+                                        placeholder="PORTFOLIO-12345 или ссылка на JIRA"
                                         value={jiraInput}
                                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => setJiraInput(e.target.value)}
                                         disabled={fetchTaskMutation.isPending}
@@ -167,9 +164,9 @@ export const TaskInputForm = ({
                                         data-testid="button-load-task"
                                     >
                                         {fetchTaskMutation.isPending ? (
-                                            <RefreshCw className="w-5 h-5 animate-spin mr-2" />
+                                            <RefreshCw className="w-4 h-4 animate-spin" />
                                         ) : (
-                                            <Download className="w-5 h-5 mr-2" />
+                                            <Download className="w-4 h-4" />
                                         )}
                                         Загрузить
                                     </Button>
@@ -189,8 +186,8 @@ export const TaskInputForm = ({
                                 </Label>
                                 <Input
                                     type="text"
-                                    style={{ padding: '16px', borderRadius: '12px', fontSize: '16px' }}
-                                    placeholder="Ключ задачи или ссылка на JIRA"
+                                    style={{ padding: '16px', borderRadius: '12px', fontSize: '16px', height: '48px' }}
+                                    placeholder="PORTFOLIO-12345 или ссылка на JIRA"
                                     value={parentJiraKey}
                                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => setParentJiraKey(e.target.value)}
                                     data-testid="input-parent-jira-key"
@@ -216,7 +213,7 @@ export const TaskInputForm = ({
                                 className="btn-custom w-full px-6 py-3"
                                 data-testid="button-process-text"
                             >
-                                <FileText className="w-5 h-5 mr-2" />
+                                <FileText className="w-4 h-4" />
                                 Обработать текст
                             </Button>
                         </div>

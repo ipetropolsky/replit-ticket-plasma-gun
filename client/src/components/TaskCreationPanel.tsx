@@ -190,7 +190,7 @@ export const TaskCreationPanel = ({
                         disabled={createTasksMutation.isPending}
                         data-testid="button-create-tasks"
                     >
-                        <Plus className="w-5 h-5 mr-2" />
+                        <Plus className="w-4 h-4" />
                         {createTasksMutation.isPending ? 'Создание...' : 'Завести задачи в JIRA'}
                     </Button>
                     <Button
@@ -200,7 +200,7 @@ export const TaskCreationPanel = ({
                         disabled={createTasksMutation.isPending}
                         data-testid="button-preview-tasks"
                     >
-                        <Eye className="w-5 h-5 mr-2" />
+                        <Eye className="w-4 h-4" />
                         Предварительный просмотр
                     </Button>
                 </div>
