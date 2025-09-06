@@ -56,16 +56,63 @@ export const DecompositionDisplay = ({
         }
     }, [decompositionText, blocks.length]);
 
-    const getEstimationColor = (estimation: string | null): string => {
-        if (!estimation || estimation === '?') return 'text-orange-500';
+    // Repository to category mapping
+    const repositoryCategories = {
+        'Frontend': {
+            repos: ['frontend', 'xhh', 'docs', 'magritte', 'bloko', 'front-packages'],
+            bg: 'bg-yellow-100',
+            text: 'text-yellow-900'
+        },
+        'Configs': {
+            repos: ['configs', 'deploy', 'deploy-dev-secure'],
+            bg: 'bg-green-100',
+            text: 'text-green-800'
+        },
+        'DB': {
+            repos: ['db', 'dbscripts'],
+            bg: 'bg-purple-100',
+            text: 'text-purple-800'
+        },
+        'Backend': {
+            repos: ['backend', 'hh.ru', 'hhru', 'xmlback', 'billing', 'billing-price', 'mm', 'monetization-manager', 'vacancy-creation', 'vc'],
+            bg: 'bg-blue-500',
+            text: 'text-white'
+        }
+    };
+
+    const getRepositoryCategory = (repository: string | null): { label: string; bg: string; text: string } => {
+        if (!repository) return { label: 'Задача', bg: 'bg-gray-100', text: 'text-gray-800' };
+        
+        for (const [category, config] of Object.entries(repositoryCategories)) {
+            if (config.repos.includes(repository.toLowerCase())) {
+                return { label: category, bg: config.bg, text: config.text };
+            }
+        }
+        
+        return { label: 'Задача', bg: 'bg-gray-100', text: 'text-gray-800' };
+    };
+
+    const getEstimationBgColor = (estimation: string | null): string => {
+        if (!estimation || estimation === '?') return 'bg-gray-100';
         
         switch (estimation) {
-            case 'XS': return 'text-blue-600';
-            case 'S': return 'text-green-600';
-            case 'M': return 'text-orange-600';
-            case 'L': return 'text-red-500';
-            case 'XL': return 'text-purple-600';
-            default: return 'text-orange-500';
+            case 'XS': return 'bg-blue-100';
+            case 'S': return 'bg-green-100';
+            case 'M': return 'bg-orange-100';
+            case 'L': return 'bg-red-100';
+            case 'XL': return 'bg-purple-100';
+            default: return 'bg-gray-100';
+        }
+    };
+
+    const getRiskBgColor = (risk: string | null): string => {
+        if (!risk) return 'bg-gray-100';
+        
+        switch (risk) {
+            case 'XS': return 'bg-orange-100';
+            case 'S': return 'bg-red-100';
+            case 'M': return 'bg-red-200';
+            default: return 'bg-gray-100';
         }
     };
 
@@ -109,37 +156,52 @@ export const DecompositionDisplay = ({
                         {blocks.map((block, index) => (
                             <div
                                 key={index}
-                                className="border border-border rounded-lg p-4 bg-background"
+                                className={`border border-border rounded-lg p-4 ${
+                                    block.type === 'text' ? 'bg-gray-50' : 'bg-background'
+                                }`}
                                 style={{ borderRadius: '12px' }}
                                 data-testid={`block-${block.type}-${index}`}
                             >
                                 <div className="flex items-start justify-between">
                                     <div className="flex-1">
-                                        <div className="flex items-center space-x-2 mb-2">
-                                            <Badge 
-                                                variant={block.type === 'task' ? 'default' : 'secondary'}
-                                                className={`text-xs ${
-                                                    block.type === 'task' 
-                                                        ? 'bg-orange-100 text-orange-800' 
-                                                        : 'bg-blue-100 text-blue-800'
-                                                }`}
-                                            >
-                                                {block.type === 'task' ? 'Задача' : 'Текст'}
-                                            </Badge>
-                                            {block.taskInfo && (
-                                                <span className="text-xs text-muted-foreground">
-                                                    {block.taskInfo.title}
-                                                </span>
+                                        <div className="flex items-center space-x-3 mb-3">
+                                            {block.type === 'task' ? (
+                                                <>
+                                                    {(() => {
+                                                        const category = getRepositoryCategory(block.taskInfo?.repository);
+                                                        return (
+                                                            <Badge 
+                                                                className={`text-xs ${category.bg} ${category.text} border-0`}
+                                                            >
+                                                                {category.label}
+                                                            </Badge>
+                                                        );
+                                                    })()}
+                                                    {block.taskInfo && (
+                                                        <span className="text-base font-semibold text-foreground">
+                                                            {block.taskInfo.title}
+                                                        </span>
+                                                    )}
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Badge className="text-xs bg-gray-100 text-gray-600 border-0">
+                                                        Текст
+                                                    </Badge>
+                                                    <span className="text-sm text-muted-foreground">
+                                                        Текстовый блок
+                                                    </span>
+                                                </>
                                             )}
                                         </div>
 
                                         {block.taskInfo && (
                                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3">
-                                                <div className="text-center p-2 bg-accent rounded">
-                                                    <div className="text-sm font-medium text-accent-foreground">
+                                                <div className={`text-center p-2 rounded ${getEstimationBgColor(block.taskInfo.estimation)}`}>
+                                                    <div className="text-sm font-medium text-muted-foreground">
                                                         Оценка
                                                     </div>
-                                                    <div className={`text-lg font-bold ${getEstimationColor(block.taskInfo.estimation)}`}>
+                                                    <div className="text-lg font-bold text-foreground">
                                                         {block.taskInfo.estimation ? (
                                                             `${block.taskInfo.estimation} (${block.taskInfo.estimationSP} SP)`
                                                         ) : (
@@ -147,15 +209,11 @@ export const DecompositionDisplay = ({
                                                         )}
                                                     </div>
                                                 </div>
-                                                <div className="text-center p-2 bg-accent rounded">
-                                                    <div className="text-sm font-medium text-accent-foreground">
+                                                <div className={`text-center p-2 rounded ${getRiskBgColor(block.taskInfo.risk)}`}>
+                                                    <div className="text-sm font-medium text-muted-foreground">
                                                         Риск
                                                     </div>
-                                                    <div className={`text-lg font-bold ${
-                                                        block.taskInfo.risk 
-                                                            ? 'text-red-600' 
-                                                            : 'text-muted-foreground'
-                                                    }`}>
+                                                    <div className="text-lg font-bold text-foreground">
                                                         {block.taskInfo.risk ? (
                                                             `${block.taskInfo.risk} (${block.taskInfo.riskSP} SP)`
                                                         ) : (
@@ -163,11 +221,11 @@ export const DecompositionDisplay = ({
                                                         )}
                                                     </div>
                                                 </div>
-                                                <div className="text-center p-2 bg-accent rounded">
-                                                    <div className="text-sm font-medium text-accent-foreground">
+                                                <div className="text-center p-2 bg-gray-100 rounded">
+                                                    <div className="text-sm font-medium text-muted-foreground">
                                                         Репозиторий
                                                     </div>
-                                                    <div className="text-lg font-bold text-primary">
+                                                    <div className="text-lg font-bold text-foreground">
                                                         {block.taskInfo.repository ? `[${block.taskInfo.repository}]` : '—'}
                                                     </div>
                                                 </div>
