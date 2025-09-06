@@ -80,7 +80,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     // Parse decomposition text using LLM
     app.post('/api/decomposition/parse', async (req, res) => {
         try {
-            const { decompositionText, jiraKey } = req.body;
+            const { decompositionText, jiraKey, provider } = req.body;
 
             if (!decompositionText) {
                 return res.status(400).json({
@@ -90,7 +90,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
             // Parse using LLM (no JIRA needed for text parsing)
             const { llmService, estimationService } = getServices({ needJira: false });
-            const blocks = await llmService.parseDecomposition(decompositionText);
+            const blocks = await llmService.parseDecomposition(decompositionText, provider);
 
             // Calculate estimations
             const estimation = estimationService.calculateTotalEstimation(blocks);
@@ -103,7 +103,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 sessionId,
                 blocks,
                 estimation,
-                mapping: estimationService.getEstimationMapping()
+                mapping: estimationService.getEstimationMapping(),
+                availableProviders: llmService.getAvailableProviders()
             });
 
         } catch (error: any) {
