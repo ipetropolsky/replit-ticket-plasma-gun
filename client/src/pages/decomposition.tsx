@@ -27,6 +27,7 @@ export const DecompositionPage = () => {
     const [mapping, setMapping] = useState<Record<string, number>>({});
     const [additionalRiskPercent, setAdditionalRiskPercent] = useState(20);
     const [parentJiraKey, setParentJiraKey] = useState<string>('');
+    const [availableProviders, setAvailableProviders] = useState<Array<{ name: string; available: boolean }>>([]);
 
     const handleTaskLoaded = (task: JiraTask, text: string) => {
         setCurrentTask(task);
@@ -52,12 +53,16 @@ export const DecompositionPage = () => {
         parsedBlocks: DecompositionBlock[],
         estimationData: EstimationData,
         sessionId: string,
-        mappingData: Record<string, number>
+        mappingData: Record<string, number>,
+        providersData?: Array<{ name: string; available: boolean }>
     ) => {
         setBlocks(parsedBlocks);
         setEstimation(estimationData);
         setSessionId(sessionId);
         setMapping(mappingData);
+        if (providersData) {
+            setAvailableProviders(providersData);
+        }
     };
 
     const handleRefresh = () => {
@@ -107,6 +112,16 @@ export const DecompositionPage = () => {
                                 jiraKey={currentTask?.key || parentJiraKey}
                                 onParsingComplete={handleParsingComplete}
                                 blocks={blocks}
+                                availableProviders={availableProviders}
+                            />
+                        )}
+
+                        {blocks.length > 0 && estimation && (
+                            <EstimationSummary
+                                estimation={estimation}
+                                additionalRiskPercent={additionalRiskPercent}
+                                onAdditionalRiskChange={setAdditionalRiskPercent}
+                                mapping={mapping}
                             />
                         )}
 
@@ -124,11 +139,6 @@ export const DecompositionPage = () => {
 
                     {/* Sidebar */}
                     <div className="lg:col-span-1 space-y-6">
-                        <EstimationSummary
-                            estimation={estimation}
-                            mapping={mapping}
-                            additionalRiskPercent={additionalRiskPercent}
-                        />
 
                         {/* Configuration Panel */}
                         <Card>

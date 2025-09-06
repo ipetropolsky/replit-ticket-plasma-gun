@@ -26,6 +26,7 @@ interface ParseDecompositionResponse {
         riskFormula: string;
     };
     mapping: Record<string, number>;
+    availableProviders?: Array<{ name: string; available: boolean }>;
 }
 
 interface EstimationConfigResponse {
@@ -39,10 +40,11 @@ export const api = {
         return await response.json();
     },
 
-    async parseDecomposition(decompositionText: string, jiraKey: string): Promise<ParseDecompositionResponse> {
+    async parseDecomposition(decompositionText: string, jiraKey: string, provider?: string): Promise<ParseDecompositionResponse> {
         const response = await apiRequest('POST', '/api/decomposition/parse', {
             decompositionText,
             jiraKey,
+            provider,
         });
         return await response.json();
     },
