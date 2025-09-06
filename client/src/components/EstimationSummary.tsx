@@ -245,41 +245,27 @@ export const EstimationSummary = ({
                 </div>
 
                 {/* Task Statistics */}
-                <div className="border-t border-border pt-4 text-base flex justify-end">
-                    <div className="space-y-1">
-                        <div className="flex items-center">
-                            <span className="text-muted-foreground min-w-max text-right">Всего задач</span>
-                            <span>:</span>
-                            <span className="font-medium ml-2">{estimation.taskCount}</span>
-                        </div>
-                        <div className="flex items-center">
-                            <span className="text-muted-foreground min-w-max text-right">Базовая оценка</span>
-                            <span>:</span>
-                            <span className="font-medium ml-2">{estimation.baseEstimation} SP</span>
-                        </div>
-                        <div className="flex items-center">
-                            <span className="text-muted-foreground min-w-max text-right">Встроенные риски</span>
-                            <span>:</span>
-                            <span className="font-medium ml-2">{estimation.risks} SP</span>
-                        </div>
-                        <div className="flex items-center">
-                            <span className="text-muted-foreground min-w-max text-right">Дополнительные риски</span>
-                            <span>:</span>
-                            <span className="font-medium ml-2">{additionalRisks} SP</span>
-                        </div>
-                        <div className="flex items-center">
-                            <span className="text-muted-foreground min-w-max text-right">Количество рабочих дней</span>
-                            <span>:</span>
-                            <span className="font-medium ml-2">{workingDays}</span>
-                        </div>
-                        {estimation.tasksWithoutEstimation > 0 && (
-                            <div className="flex items-center">
-                                <span className="text-orange-600 min-w-max text-right">Задачи без оценки</span>
-                                <span>:</span>
-                                <span className="font-medium text-orange-600 ml-2">{estimation.tasksWithoutEstimation}</span>
-                            </div>
-                        )}
+                <div className="border-t border-border pt-4 text-base space-y-1">
+                    <div className="text-muted-foreground">
+                        Всего задач: <span className="font-medium text-foreground">{estimation.taskCount}</span>
                     </div>
+                    <div className="text-muted-foreground">
+                        Базовая оценка: <span className="font-medium text-foreground">{estimation.baseEstimation} SP</span>
+                    </div>
+                    <div className="text-muted-foreground">
+                        Встроенные риски: <span className="font-medium text-foreground">{estimation.risks} SP</span>
+                    </div>
+                    <div className="text-muted-foreground">
+                        Дополнительные риски: <span className="font-medium text-foreground">{additionalRisks} SP</span>
+                    </div>
+                    <div className="text-muted-foreground">
+                        Количество рабочих дней: <span className="font-medium text-foreground">{workingDays}</span>
+                    </div>
+                    {estimation.tasksWithoutEstimation > 0 && (
+                        <div className="text-orange-600">
+                            Задачи без оценки: <span className="font-medium">{estimation.tasksWithoutEstimation}</span>
+                        </div>
+                    )}
                 </div>
             </CardContent>
         </Card>
