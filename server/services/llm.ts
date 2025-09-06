@@ -211,81 +211,16 @@ Respond with JSON in this format:
         let i = 0;
         let currentHeaderLevel = 0; // Track current task header level
 
-        // Patterns for different task formats and headings
-        const taskPattern = /^(\s*\*?\s*)(XS|S|M|L|XL)(\+)?\s*(\[([^\]]+)\])?\s*(.+?)(\*?\s*)$/i;
-        const repositoryTaskPattern = /^(\s*\*?\s*)(\[([^\]]+)\])\s*(.+?)(\*?\s*)$/i; // Tasks starting with [repo]
+        // Universal task pattern based on provided regex
+        const taskPattern = /^(\*|h[1-6]\. )?(\S+ )?\[([a-z]+(?:[.-][a-z]+)*)\] (.+)\*?$/i;
         const headingPattern = /^h([1-6])\.\s(.+)$/;
-        const headingTaskPattern = /^h([1-6])\.\s*(XS|S|M|L|XL)(\+)?\s*(\[([^\]]+)\])?\s*(.+?)$/i;
 
         while (i < lines.length) {
             const line = lines[i];
             const taskMatch = line.match(taskPattern);
-            const repositoryTaskMatch = line.match(repositoryTaskPattern);
             const headingMatch = line.match(headingPattern);
-            const headingTaskMatch = line.match(headingTaskPattern);
             
-            if (headingTaskMatch) {
-                // Task in heading format: h2. S+ [backend] API для аутентификации
-                
-                // Add accumulated text as text block if any
-                if (currentText.trim()) {
-                    blocks.push({
-                        type: 'text',
-                        content: currentText.trimEnd()
-                    });
-                    currentText = '';
-                }
-                
-                const [, headerLevel, estimation, hasRisk, , repository, title] = headingTaskMatch;
-                currentHeaderLevel = parseInt(headerLevel);
-                const estimationSP = this.getEstimationSP(estimation.toUpperCase());
-                const riskSP = hasRisk ? this.getEstimationSP('XS') : null;
-                
-                // Collect task content including description lines
-                let taskContent = line;
-                let j = i + 1;
-                
-                // Include subsequent lines until next task or heading of same/higher level
-                while (j < lines.length) {
-                    const nextLine = lines[j];
-                    const nextTaskMatch = nextLine.match(taskPattern);
-                    const nextRepositoryTaskMatch = nextLine.match(repositoryTaskPattern);
-                    const nextHeadingTaskMatch = nextLine.match(headingTaskPattern);
-                    const nextHeadingMatch = nextLine.match(headingPattern);
-                    
-                    // Stop if we find another task
-                    if (nextTaskMatch || nextRepositoryTaskMatch || nextHeadingTaskMatch) {
-                        break;
-                    }
-                    
-                    // Stop if we find heading of same or higher level
-                    if (nextHeadingMatch) {
-                        const nextHeaderLevel = parseInt(nextHeadingMatch[1]);
-                        if (nextHeaderLevel <= currentHeaderLevel) {
-                            break;
-                        }
-                    }
-                    
-                    taskContent += '\n' + nextLine;
-                    j++;
-                }
-                
-                // Add task block
-                blocks.push({
-                    type: 'task',
-                    content: taskContent,
-                    taskInfo: {
-                        title: title.trim(),
-                        repository: repository || null,
-                        estimation: estimation.toUpperCase(),
-                        risk: hasRisk ? 'XS' : null,
-                        estimationSP,
-                        riskSP
-                    }
-                });
-                
-                i = j;
-            } else if (taskMatch) {
+            if (taskMatch) {
                 // Regular task format: M [repo] Task name
                 
                 // Add accumulated text as text block if any
