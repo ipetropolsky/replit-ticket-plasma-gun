@@ -12,11 +12,11 @@ interface EstimationSummaryProps {
     additionalRiskPercent: number;
 }
 
-export default function EstimationSummary({
+export const EstimationSummary = ({
     estimation,
     mapping,
     additionalRiskPercent,
-}: EstimationSummaryProps) {
+}: EstimationSummaryProps) => {
     const calculateAdditionalRisks = () => {
         if (!estimation) return 0;
         const additional = (estimation.baseEstimation * additionalRiskPercent) / 100;

@@ -56,7 +56,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 decompositionText: validatedTask.fields.customfield_36836
             });
 
-        } catch (error) {
+        } catch (error: any) {
             console.error('JIRA task fetch error:', error);
             res.status(500).json({
                 message: error.message || 'Ошибка при получении задачи из JIRA'
@@ -76,30 +76,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
 
             // Parse using LLM
+            const { llmService, estimationService } = getServices();
             const blocks = await llmService.parseDecomposition(decompositionText);
 
             // Calculate estimations
             const estimation = estimationService.calculateTotalEstimation(blocks);
 
-            // Create session record
-            const session = await storage.createDecompositionSession({
-                jiraKey: jiraKey || '',
-                decompositionText,
-                parsedBlocks: blocks,
-                totalEstimation: Math.round((estimation.baseEstimation + estimation.risks) * 10),
-                additionalRiskPercent: 20,
-                status: 'completed'
-            });
+            // Create session in memory (no database)
+            const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
             res.json({
                 success: true,
-                sessionId: session.id,
+                sessionId,
                 blocks,
                 estimation,
                 mapping: estimationService.getEstimationMapping()
             });
 
-        } catch (error) {
+        } catch (error: any) {
             console.error('Decomposition parsing error:', error);
             res.status(500).json({
                 message: error.message || 'Ошибка при разборе декомпозиции'
@@ -113,70 +107,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const requestData = CreateTaskRequestSchema.parse(req.body);
             const { sessionId, additionalRiskPercent } = requestData;
 
-            const session = await storage.getDecompositionSession(sessionId);
-            if (!session || !session.parsedBlocks) {
-                return res.status(404).json({
-                    message: 'Сессия декомпозиции не найдена'
-                });
-            }
-
-            const blocks = session.parsedBlocks as any[];
-            const taskBlocks = blocks.filter(block => block.type === 'task' && block.taskInfo);
-
-            const createdTasks = [];
-            const errors = [];
-
-            for (const block of taskBlocks) {
-                try {
-                    const taskInfo = block.taskInfo;
-                    const repository = taskInfo.repository ? `[${taskInfo.repository}] ` : '';
-                    const summary = `${repository}${taskInfo.title}`;
-
-                    const createdTask = await jiraService.createIssue({
-                        summary,
-                        description: block.content,
-                        estimation: taskInfo.estimation,
-                        storyPoints: taskInfo.estimationSP
-                    });
-
-                    // Link to parent task if we have the original JIRA key
-                    if (session.jiraKey) {
-                        try {
-                            await jiraService.linkIssues(session.jiraKey, createdTask.key);
-                        } catch (linkError) {
-                            console.warn(`Failed to link ${createdTask.key} to ${session.jiraKey}:`, linkError);
-                        }
-                    }
-
-                    createdTasks.push({
-                        key: createdTask.key,
-                        id: createdTask.id,
-                        summary,
-                        url: `${process.env.JIRA_HOST}/browse/${createdTask.key}`
-                    });
-
-                } catch (error) {
-                    console.error(`Failed to create task:`, error);
-                    errors.push(`Ошибка создания задачи "${block.taskInfo.title}": ${error.message}`);
-                }
-            }
-
-            // Update session with created tasks
-            await storage.updateDecompositionSession(sessionId, {
-                createdTasks,
-                additionalRiskPercent,
-                status: errors.length > 0 ? 'partial_error' : 'completed'
+            // No session storage - return error for now
+            // In real implementation, would store session data in memory or cache
+            return res.status(501).json({
+                message: 'Создание задач временно недоступно - база данных отключена'
             });
 
-            const response: TaskCreationResponseSchema['_type'] = {
-                success: errors.length === 0,
-                createdTasks,
-                errors
-            };
-
-            res.json(response);
-
-        } catch (error) {
+        } catch (error: any) {
             console.error('Task creation error:', error);
             res.status(500).json({
                 message: error.message || 'Ошибка при создании задач'
@@ -187,12 +124,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     // Get estimation configuration
     app.get('/api/estimation/config', (req, res) => {
         try {
+            const { estimationService } = getServices();
             const mapping = estimationService.getEstimationMapping();
             res.json({
                 success: true,
                 mapping
             });
-        } catch (error) {
+        } catch (error: any) {
             res.status(500).json({
                 message: error.message || 'Ошибка получения конфигурации'
             });

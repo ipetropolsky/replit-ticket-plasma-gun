@@ -16,11 +16,11 @@ interface TaskInputFormProps {
     onRefresh: () => void;
 }
 
-export default function TaskInputForm({ 
+export const TaskInputForm = ({ 
     onTaskLoaded, 
     currentTask, 
     onRefresh 
-}: TaskInputFormProps) {
+}: TaskInputFormProps) => {
     const [input, setInput] = useState('');
     const { toast } = useToast();
 

@@ -19,12 +19,12 @@ interface DecompositionDisplayProps {
     blocks: DecompositionBlock[];
 }
 
-export default function DecompositionDisplay({
+export const DecompositionDisplay = ({
     decompositionText,
     jiraKey,
     onParsingComplete,
     blocks,
-}: DecompositionDisplayProps) {
+}: DecompositionDisplayProps) => {
     const { toast } = useToast();
 
     const parseMutation = useMutation({

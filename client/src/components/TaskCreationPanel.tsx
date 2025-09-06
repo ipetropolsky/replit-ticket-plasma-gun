@@ -23,12 +23,12 @@ interface TaskCreationPanelProps {
     onAdditionalRiskChange: (percent: number) => void;
 }
 
-export default function TaskCreationPanel({
+export const TaskCreationPanel = ({
     sessionId,
     estimation,
     additionalRiskPercent,
     onAdditionalRiskChange,
-}: TaskCreationPanelProps) {
+}: TaskCreationPanelProps) => {
     const [createdTasks, setCreatedTasks] = useState<TaskCreationResponse['createdTasks']>([]);
     const [errors, setErrors] = useState<string[]>([]);
     const { toast } = useToast();
