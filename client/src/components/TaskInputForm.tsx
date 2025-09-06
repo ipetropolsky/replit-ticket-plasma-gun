@@ -154,7 +154,7 @@ export const TaskInputForm = ({
                                         type="text"
                                         className="flex-1"
                                         style={{ padding: '16px', borderRadius: '12px', fontSize: '16px' }}
-                                        placeholder="PORTFOLIO-987654321 или https://jira.hh.ru/browse/PORTFOLIO-987654321"
+                                        placeholder="Ключ задачи или ссылка на JIRA"
                                         value={jiraInput}
                                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => setJiraInput(e.target.value)}
                                         disabled={fetchTaskMutation.isPending}
@@ -175,9 +175,6 @@ export const TaskInputForm = ({
                                         Загрузить
                                     </Button>
                                 </div>
-                                <p className="text-muted-foreground text-sm mt-2">
-                                    Введите ключ задачи или полную ссылку из JIRA
-                                </p>
                             </div>
                         </div>
                     </form>
@@ -189,37 +186,30 @@ export const TaskInputForm = ({
                         <div className="space-y-4">
                             <div>
                                 <Label className="text-sm font-medium mb-2 block">
-                                    Текст декомпозиции
-                                </Label>
-                                <Textarea
-                                    className="min-h-[200px]"
-                                    style={{ padding: '16px', borderRadius: '12px', fontSize: '16px' }}
-                                    placeholder="Вставьте текст декомпозиции задачи...\n\nПример:\n- Создать компонент авторизации\n- Добавить валидацию форм\n- Настроить роутинг"
-                                    value={textInput}
-                                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setTextInput(e.target.value)}
-                                    data-testid="textarea-decomposition"
-                                />
-                                <p className="text-muted-foreground text-sm mt-2">
-                                    Введите текст декомпозиции для разбора на задачи
-                                </p>
-                            </div>
-                            
-                            <div>
-                                <Label className="text-sm font-medium mb-2 block">
                                     Родительская задача (необязательно)
                                 </Label>
                                 <Input
                                     type="text"
                                     style={{ padding: '16px', borderRadius: '12px', fontSize: '16px' }}
-                                    placeholder="PORTFOLIO-123456 (для привязки создаваемых задач)"
+                                    placeholder="Ключ задачи или ссылка на JIRA"
                                     value={parentJiraKey}
                                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => setParentJiraKey(e.target.value)}
                                     data-testid="input-parent-jira-key"
                                 />
-                                <p className="text-muted-foreground text-sm mt-2">
-                                    Укажите ключ родительской задачи для привязки создаваемых подзадач
-                                </p>
                             </div>
+                            
+                            <div>
+                                <Label className="text-sm font-medium mb-2 block">
+                                    Текст декомпозиции
+                                </Label>
+                                <Textarea
+                                    className="min-h-[200px]"
+                                    style={{ padding: '16px', borderRadius: '12px', fontSize: '16px' }}
+                                    placeholder="Вставьте текст декомпозиции для разбора на задачи"
+                                    value={textInput}
+                                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setTextInput(e.target.value)}
+                                    data-testid="textarea-decomposition"
+                                />
 
                             <Button
                                 type="submit"

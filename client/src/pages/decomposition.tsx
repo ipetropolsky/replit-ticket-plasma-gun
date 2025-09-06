@@ -77,18 +77,15 @@ export const DecompositionPage = () => {
                 <div className="max-w-7xl mx-auto px-6 py-4">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-4">
-                            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                                <ClipboardList className="w-5 h-5 text-primary-foreground" />
-                            </div>
+                            <img 
+                                src="https://i.hh.ru/styles/images/logos/hh.ru__min_.svg?v=23122024" 
+                                alt="HH.ru"
+                                className="h-12"
+                            />
                             <div>
                                 <h1 className="text-xl font-bold text-foreground">JIRA Task Decomposition Tool</h1>
                                 <p className="text-muted-foreground text-sm">Автоматическое создание подзадач</p>
                             </div>
-                        </div>
-                        <div className="flex items-center space-x-3">
-                            <Badge variant="default" className="bg-primary text-primary-foreground">
-                                HH.ru
-                            </Badge>
                         </div>
                     </div>
                 </div>
