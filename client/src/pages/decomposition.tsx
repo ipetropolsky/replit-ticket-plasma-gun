@@ -160,9 +160,9 @@ export const DecompositionPage = () => {
                             <CardHeader>
                                 <CardTitle className="text-lg">Конфигурация</CardTitle>
                             </CardHeader>
-                            <CardContent className="space-y-4">
+                            <CardContent className="space-y-4 text-sm">
                                 {/* Size Mapping */}
-                                <div className="text-base">
+                                <div>
                                     <div className="text-muted-foreground mb-2">Майки и SP:</div>
                                     <div className="space-y-1">
                                         {Object.entries(mapping).length > 0 ? (
@@ -184,18 +184,18 @@ export const DecompositionPage = () => {
                                 </div>
 
                                 {/* Connection Status */}
-                                <div className="border-t border-border pt-4 text-base">
+                                <div className="border-t border-border pt-4">
                                     <div className="text-muted-foreground mb-2">Статус подключения:</div>
                                     <div className="space-y-1">
                                         {/* JIRA Status */}
                                         <div className="text-muted-foreground">
-                                            JIRA API: 
+                                            JIRA API:
                                             <TooltipProvider>
                                                 <Tooltip>
                                                     <TooltipTrigger asChild>
-                                                        <span className="inline-flex items-center space-x-1 cursor-help">
-                                                            <span className="font-medium text-orange-600">Токен не найден</span>
-                                                            <Info className="h-3 w-3 text-orange-600" />
+                                                        <span className="inline-flex items-center space-x-1">
+                                                            <span className="font-medium text-orange-600"> Токен не найден</span>
+                                                            <Info className="h-4 w-4 text-orange-600" style={{ marginTop: '2px' }} />
                                                         </span>
                                                     </TooltipTrigger>
                                                     <TooltipContent>
@@ -206,13 +206,13 @@ export const DecompositionPage = () => {
                                         </div>
                                         {/* OpenAI Status */}
                                         <div className="text-muted-foreground">
-                                            OpenAI API: 
+                                            OpenAI API:
                                             <TooltipProvider>
                                                 <Tooltip>
                                                     <TooltipTrigger asChild>
-                                                        <span className="inline-flex items-center space-x-1 cursor-help">
-                                                            <span className="font-medium text-orange-600">Токен не найден</span>
-                                                            <Info className="h-3 w-3 text-orange-600" />
+                                                        <span className="inline-flex items-center space-x-1">
+                                                            <span className="font-medium text-orange-600"> Токен не найден</span>
+                                                            <Info className="h-4 w-4 text-orange-600" style={{ marginTop: '2px' }} />
                                                         </span>
                                                     </TooltipTrigger>
                                                     <TooltipContent>
@@ -223,13 +223,13 @@ export const DecompositionPage = () => {
                                         </div>
                                         {/* Anthropic Status */}
                                         <div className="text-muted-foreground">
-                                            Anthropic API: 
+                                            Anthropic API:
                                             <TooltipProvider>
                                                 <Tooltip>
                                                     <TooltipTrigger asChild>
-                                                        <span className="inline-flex items-center space-x-1 cursor-help">
-                                                            <span className="font-medium text-orange-600">Токен не найден</span>
-                                                            <Info className="h-3 w-3 text-orange-600" />
+                                                        <span className="inline-flex items-center space-x-1">
+                                                            <span className="font-medium text-orange-600"> Токен не найден</span>
+                                                            <Info className="h-4 w-4 text-orange-600" style={{ marginTop: '2px' }} />
                                                         </span>
                                                     </TooltipTrigger>
                                                     <TooltipContent>
@@ -242,7 +242,7 @@ export const DecompositionPage = () => {
                                 </div>
 
                                 {/* Help */}
-                                <div className="border-t border-border pt-4 text-base">
+                                <div className="border-t border-border pt-4">
                                     <div className="text-muted-foreground mb-2">Помощь:</div>
                                     <div className="space-y-1">
                                         <div className="text-muted-foreground">M+ означает: <span className="font-medium text-foreground">M оценка + S риск</span></div>
