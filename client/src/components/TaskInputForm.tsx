@@ -122,8 +122,12 @@ export const TaskInputForm = ({
                             variant="outline"
                             size="sm"
                             className="h-8"
+                            style={{
+                                borderRadius: '12px',
+                                fontSize: '14px'
+                            }}
                         >
-                            <RefreshCw className="h-4 w-4 mr-2" />
+                            <RefreshCw className="h-4 w-4" style={{ marginRight: '10px' }} />
                             Сбросить
                         </Button>
                     )}
@@ -141,7 +145,11 @@ export const TaskInputForm = ({
                             onChange={(e) => setJiraInput(e.target.value)}
                             placeholder="PORTFOLIO-12345 или ссылка на JIRA"
                             className="flex-1"
-                            style={{ height: '48px' }}
+                            style={{ 
+                                height: '48px', 
+                                borderRadius: '12px',
+                                fontSize: '16px'
+                            }}
                         />
                         <Button
                             onClick={handleJiraLoad}
@@ -150,17 +158,19 @@ export const TaskInputForm = ({
                                 backgroundColor: '#0070ff',
                                 color: 'white',
                                 height: '48px',
-                                minWidth: '160px'
+                                minWidth: '160px',
+                                borderRadius: '12px',
+                                fontSize: '16px'
                             }}
                         >
                             {fetchTaskMutation.isPending ? (
                                 <>
-                                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                                    <RefreshCw className="h-4 w-4 animate-spin" style={{ marginRight: '10px' }} />
                                     Загрузка...
                                 </>
                             ) : (
                                 <>
-                                    <Download className="h-4 w-4 mr-2" />
+                                    <Download className="h-4 w-4" style={{ marginRight: '10px' }} />
                                     Загрузить из JIRA
                                 </>
                             )}
@@ -170,13 +180,26 @@ export const TaskInputForm = ({
 
                 {/* Text Input Section */}
                 <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                        <Label htmlFor="text-input">Текст декомпозиции</Label>
-                        
+                    <Label htmlFor="text-input">Текст декомпозиции</Label>
+                    
+                    <Textarea
+                        id="text-input"
+                        value={textInput}
+                        onChange={(e) => setTextInput(e.target.value)}
+                        placeholder="Вставьте текст декомпозиции или загрузите его из JIRA"
+                        className="min-h-[200px] resize-y"
+                        style={{
+                            borderRadius: '12px',
+                            fontSize: '16px'
+                        }}
+                    />
+                    
+                    {/* Provider Selection and Submit Button */}
+                    <div className="flex items-center justify-between gap-4">
                         {/* Provider Selection */}
                         <div className="flex items-center gap-2">
                             <span className="text-sm text-muted-foreground">Анализатор:</span>
-                            <div className="flex rounded-lg border p-1" style={{ backgroundColor: '#f8f9fa' }}>
+                            <div className="flex border p-1" style={{ backgroundColor: '#f8f9fa', borderRadius: '12px' }}>
                                 {['openai', 'anthropic', 'regexp'].map((provider) => {
                                     const providerTyped = provider as LLMProvider;
                                     const isAvailable = availableProviders?.find(p => p.name === provider)?.available ?? (provider === 'regexp');
@@ -194,11 +217,15 @@ export const TaskInputForm = ({
                                                     ? 'bg-white shadow-sm' 
                                                     : 'hover:bg-white/50'
                                             }`}
-                                            style={isSelected ? {
-                                                backgroundColor: '#ffffff',
-                                                color: '#0070ff',
-                                                boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)'
-                                            } : {}}
+                                            style={{
+                                                borderRadius: '8px',
+                                                fontSize: '14px',
+                                                ...(isSelected ? {
+                                                    backgroundColor: '#ffffff',
+                                                    color: '#0070ff',
+                                                    boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)'
+                                                } : {})
+                                            }}
                                         >
                                             {getProviderLabel(providerTyped)}
                                         </Button>
@@ -206,34 +233,28 @@ export const TaskInputForm = ({
                                 })}
                             </div>
                         </div>
+                        
+                        {/* Submit Button */}
+                        <Button
+                            onClick={handleTextSubmit}
+                            disabled={!textInput.trim()}
+                            style={{
+                                backgroundColor: textInput.trim() ? '#0070ff' : undefined,
+                                color: textInput.trim() ? 'white' : undefined,
+                                height: '48px',
+                                minWidth: '180px',
+                                borderRadius: '12px',
+                                fontSize: '16px'
+                            }}
+                        >
+                            <FileText className="h-4 w-4" style={{ marginRight: '10px' }} />
+                            Разбить на задачи
+                        </Button>
                     </div>
                     
-                    <Textarea
-                        id="text-input"
-                        value={textInput}
-                        onChange={(e) => setTextInput(e.target.value)}
-                        placeholder="Вставьте текст декомпозиции или загрузите его из JIRA"
-                        className="min-h-[200px] resize-y"
-                    />
-                </div>
-
-                {/* Submit Button */}
-                <div className="flex items-center gap-4">
-                    <Button
-                        onClick={handleTextSubmit}
-                        disabled={!textInput.trim()}
-                        style={{
-                            backgroundColor: textInput.trim() ? '#0070ff' : undefined,
-                            color: textInput.trim() ? 'white' : undefined,
-                            height: '48px',
-                            minWidth: '180px'
-                        }}
-                    >
-                        <FileText className="h-4 w-4 mr-2" />
-                        Разбить на задачи
-                    </Button>
-                    <div className="text-sm text-muted-foreground">
-                        Мы попытаемся выделить задачи из текста. Создать задачи в JIRA можно будет позже.
+                    {/* Help Text */}
+                    <div className="text-sm text-muted-foreground text-right">
+                        Выделим задачи из текста. Создание в JIRA — на следующем шаге.
                     </div>
                 </div>
 
