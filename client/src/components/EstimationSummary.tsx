@@ -209,10 +209,7 @@ export const EstimationSummary = ({
                                 >
                                     {total} SP
                                 </div>
-                                <div 
-                                    className="font-mono text-sm bg-background p-2 rounded mt-2"
-                                    style={{ borderRadius: '8px' }}
-                                >
+                                <div className="text-sm text-muted-foreground font-normal mt-1">
                                     (SP × 2) ÷ {parallelizationCoefficient} ≈ {workingDays} рабочих дней
                                 </div>
                             </div>
