@@ -4,7 +4,13 @@ import { DecompositionDisplay } from '@/components/DecompositionDisplay';
 import { EstimationSummary } from '@/components/EstimationSummary';
 import { TaskCreationPanel } from '@/components/TaskCreationPanel';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ClipboardList } from 'lucide-react';
+import { ClipboardList, Info } from 'lucide-react';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import type { 
     JiraTask, 
     DecompositionBlock 
@@ -154,47 +160,95 @@ export const DecompositionPage = () => {
                             <CardHeader>
                                 <CardTitle className="text-lg">Конфигурация</CardTitle>
                             </CardHeader>
-                            <CardContent className="space-y-4 text-sm">
+                            <CardContent className="space-y-4">
                                 {/* Size Mapping */}
-                                <div>
+                                <div className="text-base">
                                     <div className="text-muted-foreground mb-2">Майки и SP:</div>
                                     <div className="space-y-1">
                                         {Object.entries(mapping).length > 0 ? (
                                             Object.entries(mapping).map(([size, sp]) => (
-                                                <div key={size} className="flex justify-between">
-                                                    <span>{size}</span>
-                                                    <span className="font-medium">{sp} SP</span>
+                                                <div key={size} className="text-muted-foreground">
+                                                    {size}: <span className="font-medium text-foreground">{sp} SP</span>
                                                 </div>
                                             ))
                                         ) : (
-                                            <div className="text-sm text-muted-foreground">
-                                                XS: 1 SP • S: 2 SP • M: 3 SP • L: 5 SP • XL: 8 SP
+                                            <div className="space-y-1">
+                                                <div className="text-muted-foreground">XS: <span className="font-medium text-foreground">1 SP</span></div>
+                                                <div className="text-muted-foreground">S: <span className="font-medium text-foreground">2 SP</span></div>
+                                                <div className="text-muted-foreground">M: <span className="font-medium text-foreground">3 SP</span></div>
+                                                <div className="text-muted-foreground">L: <span className="font-medium text-foreground">5 SP</span></div>
+                                                <div className="text-muted-foreground">XL: <span className="font-medium text-foreground">8 SP</span></div>
                                             </div>
                                         )}
                                     </div>
                                 </div>
 
                                 {/* Connection Status */}
-                                <div className="border-t border-border pt-4">
+                                <div className="border-t border-border pt-4 text-base">
                                     <div className="text-muted-foreground mb-2">Статус подключения:</div>
-                                    <div className="flex items-center space-x-2">
-                                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                                        <span className="text-green-600 font-medium">JIRA API подключен</span>
-                                    </div>
-                                    <div className="flex items-center space-x-2 mt-1">
-                                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                                        <span className="text-green-600 font-medium">LLM API подключен</span>
+                                    <div className="space-y-1">
+                                        {/* JIRA Status */}
+                                        <div className="text-muted-foreground">
+                                            JIRA API: 
+                                            <TooltipProvider>
+                                                <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                        <span className="inline-flex items-center space-x-1 cursor-help">
+                                                            <span className="font-medium text-orange-600">Токен не найден</span>
+                                                            <Info className="h-3 w-3 text-orange-600" />
+                                                        </span>
+                                                    </TooltipTrigger>
+                                                    <TooltipContent>
+                                                        <p>Необходимо настроить JIRA_HOST, JIRA_USER и JIRA_TOKEN</p>
+                                                    </TooltipContent>
+                                                </Tooltip>
+                                            </TooltipProvider>
+                                        </div>
+                                        {/* OpenAI Status */}
+                                        <div className="text-muted-foreground">
+                                            OpenAI API: 
+                                            <TooltipProvider>
+                                                <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                        <span className="inline-flex items-center space-x-1 cursor-help">
+                                                            <span className="font-medium text-orange-600">Токен не найден</span>
+                                                            <Info className="h-3 w-3 text-orange-600" />
+                                                        </span>
+                                                    </TooltipTrigger>
+                                                    <TooltipContent>
+                                                        <p>Необходимо настроить OPENAI_API_KEY</p>
+                                                    </TooltipContent>
+                                                </Tooltip>
+                                            </TooltipProvider>
+                                        </div>
+                                        {/* Anthropic Status */}
+                                        <div className="text-muted-foreground">
+                                            Anthropic API: 
+                                            <TooltipProvider>
+                                                <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                        <span className="inline-flex items-center space-x-1 cursor-help">
+                                                            <span className="font-medium text-orange-600">Токен не найден</span>
+                                                            <Info className="h-3 w-3 text-orange-600" />
+                                                        </span>
+                                                    </TooltipTrigger>
+                                                    <TooltipContent>
+                                                        <p>Необходимо настроить ANTHROPIC_API_KEY</p>
+                                                    </TooltipContent>
+                                                </Tooltip>
+                                            </TooltipProvider>
+                                        </div>
                                     </div>
                                 </div>
 
                                 {/* Help */}
-                                <div className="border-t border-border pt-4">
+                                <div className="border-t border-border pt-4 text-base">
                                     <div className="text-muted-foreground mb-2">Помощь:</div>
-                                    <div className="text-xs space-y-1">
-                                        <p>• M+ означает M оценка + S риск</p>
-                                        <p>• S+ означает S оценка + XS риск</p>
-                                        <p>• Названия задач: [репозиторий] Название</p>
-                                        <p>• 1 SP = 2 рабочих дня</p>
+                                    <div className="space-y-1">
+                                        <div className="text-muted-foreground">M+ означает: <span className="font-medium text-foreground">M оценка + S риск</span></div>
+                                        <div className="text-muted-foreground">S+ означает: <span className="font-medium text-foreground">S оценка + XS риск</span></div>
+                                        <div className="text-muted-foreground">Формат задач: <span className="font-medium text-foreground">[репозиторий] Название</span></div>
+                                        <div className="text-muted-foreground">1 SP: <span className="font-medium text-foreground">2 рабочих дня</span></div>
                                     </div>
                                 </div>
                             </CardContent>

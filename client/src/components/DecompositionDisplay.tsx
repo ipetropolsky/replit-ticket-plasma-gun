@@ -158,7 +158,7 @@ export const DecompositionDisplay = ({
                                 key={index}
                                 className={`rounded-lg p-4 ${
                                     block.type === 'text' 
-                                        ? 'bg-white' 
+                                        ? 'bg-white border border-dashed border-border' 
                                         : 'border border-border bg-background'
                                 }`}
                                 style={{ borderRadius: '12px' }}
@@ -194,7 +194,10 @@ export const DecompositionDisplay = ({
 
                                         {block.taskInfo && (
                                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3">
-                                                <div className={`text-center p-2 rounded ${getEstimationBgColor(block.taskInfo.estimation)}`}>
+                                                <div 
+                                                    className={`text-center p-2 ${getEstimationBgColor(block.taskInfo.estimation)}`}
+                                                    style={{ borderRadius: '8px' }}
+                                                >
                                                     <div className="text-sm font-medium text-muted-foreground">
                                                         Оценка
                                                     </div>
@@ -206,7 +209,10 @@ export const DecompositionDisplay = ({
                                                         )}
                                                     </div>
                                                 </div>
-                                                <div className={`text-center p-2 rounded ${getRiskBgColor(block.taskInfo.risk)}`}>
+                                                <div 
+                                                    className={`text-center p-2 ${getRiskBgColor(block.taskInfo.risk)}`}
+                                                    style={{ borderRadius: '8px' }}
+                                                >
                                                     <div className="text-sm font-medium text-muted-foreground">
                                                         Риск
                                                     </div>
@@ -218,7 +224,10 @@ export const DecompositionDisplay = ({
                                                         )}
                                                     </div>
                                                 </div>
-                                                <div className="text-center p-2 bg-gray-100 rounded">
+                                                <div 
+                                                    className="text-center p-2 bg-gray-100"
+                                                    style={{ borderRadius: '8px' }}
+                                                >
                                                     <div className="text-sm font-medium text-muted-foreground">
                                                         Репозиторий
                                                     </div>
