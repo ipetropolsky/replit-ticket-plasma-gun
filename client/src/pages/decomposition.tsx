@@ -28,6 +28,7 @@ export const DecompositionPage = () => {
     const [additionalRiskPercent, setAdditionalRiskPercent] = useState(20);
     const [parentJiraKey, setParentJiraKey] = useState<string>('');
     const [availableProviders, setAvailableProviders] = useState<Array<{ name: string; available: boolean }>>([]);
+    const [selectedProvider, setSelectedProvider] = useState<string>('regexp');
 
     const handleTaskLoaded = (task: JiraTask, text: string) => {
         setCurrentTask(task);
@@ -39,10 +40,13 @@ export const DecompositionPage = () => {
         setSessionId('');
     };
 
-    const handleTextProvided = (text: string, parentKey?: string) => {
+    const handleTextProvided = (text: string, parentKey?: string, provider?: string) => {
         setCurrentTask(null); // No JIRA task loaded
         setDecompositionText(text);
         setParentJiraKey(parentKey || ''); // Optional parent key
+        if (provider) {
+            setSelectedProvider(provider);
+        }
         // Reset parsing results when new text is provided
         setBlocks([]);
         setEstimation(null);
@@ -104,15 +108,16 @@ export const DecompositionPage = () => {
                             onTextProvided={handleTextProvided}
                             currentTask={currentTask}
                             onRefresh={handleRefresh}
+                            availableProviders={availableProviders}
                         />
 
                         {decompositionText && (
                             <DecompositionDisplay
                                 decompositionText={decompositionText}
                                 jiraKey={currentTask?.key || parentJiraKey}
+                                provider={selectedProvider}
                                 onParsingComplete={handleParsingComplete}
                                 blocks={blocks}
-                                availableProviders={availableProviders}
                             />
                         )}
 

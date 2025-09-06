@@ -1,46 +1,37 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { CheckCircle, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { api } from '@/lib/api';
 import type { DecompositionBlock } from '@shared/schema';
 
-type LLMProvider = 'openai' | 'anthropic' | 'regexp';
-
-interface ProviderInfo {
-  name: LLMProvider;
-  available: boolean;
-}
-
 interface DecompositionDisplayProps {
     decompositionText: string;
     jiraKey: string;
+    provider?: string;
     onParsingComplete: (
         blocks: DecompositionBlock[],
         estimation: any,
         sessionId: string,
         mapping: Record<string, number>,
-        availableProviders?: ProviderInfo[]
+        availableProviders?: Array<{ name: string; available: boolean }>
     ) => void;
     blocks: DecompositionBlock[];
-    availableProviders?: ProviderInfo[];
 }
 
 export const DecompositionDisplay = ({
     decompositionText,
     jiraKey,
+    provider,
     onParsingComplete,
     blocks,
-    availableProviders,
 }: DecompositionDisplayProps) => {
     const { toast } = useToast();
-    const [selectedProvider, setSelectedProvider] = useState<LLMProvider>('regexp');
 
     const parseMutation = useMutation({
-        mutationFn: (provider: LLMProvider) => api.parseDecomposition(decompositionText, jiraKey, provider),
+        mutationFn: () => api.parseDecomposition(decompositionText, jiraKey, provider),
         onSuccess: (data) => {
             if (data.success) {
                 onParsingComplete(data.blocks, data.estimation, data.sessionId, data.mapping, data.availableProviders);
@@ -61,26 +52,9 @@ export const DecompositionDisplay = ({
 
     useEffect(() => {
         if (decompositionText && blocks.length === 0) {
-            parseMutation.mutate(selectedProvider);
+            parseMutation.mutate();
         }
     }, [decompositionText, blocks.length]);
-
-    const handleProviderChange = (provider: LLMProvider) => {
-        setSelectedProvider(provider);
-    };
-
-    const handleReparse = () => {
-        parseMutation.mutate(selectedProvider);
-    };
-
-    const getProviderLabel = (provider: LLMProvider): string => {
-        switch (provider) {
-            case 'openai': return 'OpenAI';
-            case 'anthropic': return 'Anthropic';
-            case 'regexp': return 'RegExp';
-            default: return provider;
-        }
-    };
 
     const getEstimationColor = (estimation: string | null): string => {
         if (!estimation) return 'text-muted-foreground';
@@ -96,64 +70,9 @@ export const DecompositionDisplay = ({
     return (
         <Card style={{ borderRadius: '24px', padding: '24px' }}>
             <CardHeader className="p-0 mb-4">
-                <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg font-semibold">
-                        Результат парсинга декомпозиции
-                    </CardTitle>
-                    
-                    {/* Provider Selection */}
-                    <div className="flex items-center gap-2">
-                        <span className="text-sm text-muted-foreground">Анализатор:</span>
-                        <div className="flex rounded-lg border p-1" style={{ backgroundColor: '#f8f9fa' }}>
-                            {['openai', 'anthropic', 'regexp'].map((provider) => {
-                                const providerTyped = provider as LLMProvider;
-                                const isAvailable = availableProviders?.find(p => p.name === provider)?.available ?? (provider === 'regexp');
-                                const isSelected = selectedProvider === provider;
-                                
-                                return (
-                                    <Button
-                                        key={provider}
-                                        variant="ghost"
-                                        size="sm"
-                                        disabled={!isAvailable}
-                                        onClick={() => handleProviderChange(providerTyped)}
-                                        className={`h-8 px-3 text-xs ${
-                                            isSelected 
-                                                ? 'bg-white shadow-sm' 
-                                                : 'hover:bg-white/50'
-                                        }`}
-                                        style={isSelected ? {
-                                            backgroundColor: '#ffffff',
-                                            color: '#0070ff',
-                                            boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)'
-                                        } : {}}
-                                    >
-                                        {getProviderLabel(providerTyped)}
-                                    </Button>
-                                );
-                            })}
-                        </div>
-                        
-                        {blocks.length > 0 && (
-                            <Button
-                                size="sm"
-                                onClick={handleReparse}
-                                disabled={parseMutation.isPending}
-                                style={{
-                                    backgroundColor: '#0070ff',
-                                    color: 'white',
-                                    height: '32px'
-                                }}
-                            >
-                                {parseMutation.isPending ? (
-                                    <Loader2 className="h-3 w-3 animate-spin" />
-                                ) : (
-                                    'Перепарсить'
-                                )}
-                            </Button>
-                        )}
-                    </div>
-                </div>
+                <CardTitle className="text-lg font-semibold">
+                    Результат анализа декомпозиции
+                </CardTitle>
             </CardHeader>
             <CardContent className="p-0 space-y-4">
                 {/* Parsing Status */}
