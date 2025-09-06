@@ -80,13 +80,14 @@ export class LLMService {
 Analyze the following JIRA decomposition text and split it into blocks. Each block should be either "text" or "task".
 
 Rules:
-1. Task blocks start with a task title in format like "M [repo] Task name" or "*S+ [xhh] Sidebar*"
+1. Task blocks can be in format like "M [repo] Task name" or "*S+ [xhh] Sidebar*" or in headings like "h2. S+ [backend] API для аутентификации"
 2. Task titles may include JIRA markdown links like "[base|https://example.com]"
 3. Extract estimation (XS, S, M, L, XL) and risk from the title
 4. For combined estimations like "S+" or "M+S", the base is the main estimation, risk is the extra part
 5. Repository name is in square brackets [repo]
-6. Everything else is text blocks
-7. Include everything after task title line as part of the task content until the next task or heading
+6. Task description includes everything until the next task OR until a heading of the same level or higher
+7. Track header levels - if we're in a task with header level h3, then h3 or higher (h1, h2) ends the task description
+8. Everything else is text blocks
 
 Text to analyze:
 ${decompositionText}
@@ -143,13 +144,14 @@ Respond with JSON in this format:
 Analyze the following JIRA decomposition text and split it into blocks. Each block should be either "text" or "task".
 
 Rules:
-1. Task blocks start with a task title in format like "M [repo] Task name" or "*S+ [xhh] Sidebar*"
+1. Task blocks can be in format like "M [repo] Task name" or "*S+ [xhh] Sidebar*" or in headings like "h2. S+ [backend] API для аутентификации"
 2. Task titles may include JIRA markdown links like "[base|https://example.com]"
 3. Extract estimation (XS, S, M, L, XL) and risk from the title
 4. For combined estimations like "S+" or "M+S", the base is the main estimation, risk is the extra part
 5. Repository name is in square brackets [repo]
-6. Everything else is text blocks
-7. Include everything after task title line as part of the task content until the next task or heading
+6. Task description includes everything until the next task OR until a heading of the same level or higher
+7. Track header levels - if we're in a task with header level h3, then h3 or higher (h1, h2) ends the task description
+8. Everything else is text blocks
 
 Text to analyze:
 ${decompositionText}
@@ -207,16 +209,82 @@ Respond with JSON in this format:
         const blocks: DecompositionBlock[] = [];
         let currentText = '';
         let i = 0;
+        let currentHeaderLevel = 0; // Track current task header level
 
         // Patterns for different task formats and headings
         const taskPattern = /^(\s*\*?\s*)(XS|S|M|L|XL)(\+)?\s*(\[([^\]]+)\])?\s*(.+?)(\*?\s*)$/i;
-        const headingPattern = /^h[1-6]\.\s/;
+        const headingPattern = /^h([1-6])\.\s(.+)$/;
+        const headingTaskPattern = /^h([1-6])\.\s*(XS|S|M|L|XL)(\+)?\s*(\[([^\]]+)\])?\s*(.+?)$/i;
 
         while (i < lines.length) {
             const line = lines[i];
             const taskMatch = line.match(taskPattern);
+            const headingMatch = line.match(headingPattern);
+            const headingTaskMatch = line.match(headingTaskPattern);
             
-            if (taskMatch) {
+            if (headingTaskMatch) {
+                // Task in heading format: h2. S+ [backend] API для аутентификации
+                
+                // Add accumulated text as text block if any
+                if (currentText.trim()) {
+                    blocks.push({
+                        type: 'text',
+                        content: currentText.trimEnd()
+                    });
+                    currentText = '';
+                }
+                
+                const [, headerLevel, estimation, hasRisk, , repository, title] = headingTaskMatch;
+                currentHeaderLevel = parseInt(headerLevel);
+                const estimationSP = this.getEstimationSP(estimation.toUpperCase());
+                const riskSP = hasRisk ? this.getEstimationSP('XS') : null;
+                
+                // Collect task content including description lines
+                let taskContent = line;
+                let j = i + 1;
+                
+                // Include subsequent lines until next task or heading of same/higher level
+                while (j < lines.length) {
+                    const nextLine = lines[j];
+                    const nextTaskMatch = nextLine.match(taskPattern);
+                    const nextHeadingTaskMatch = nextLine.match(headingTaskPattern);
+                    const nextHeadingMatch = nextLine.match(headingPattern);
+                    
+                    // Stop if we find another task
+                    if (nextTaskMatch || nextHeadingTaskMatch) {
+                        break;
+                    }
+                    
+                    // Stop if we find heading of same or higher level
+                    if (nextHeadingMatch) {
+                        const nextHeaderLevel = parseInt(nextHeadingMatch[1]);
+                        if (nextHeaderLevel <= currentHeaderLevel) {
+                            break;
+                        }
+                    }
+                    
+                    taskContent += '\n' + nextLine;
+                    j++;
+                }
+                
+                // Add task block
+                blocks.push({
+                    type: 'task',
+                    content: taskContent,
+                    taskInfo: {
+                        title: title.trim(),
+                        repository: repository || null,
+                        estimation: estimation.toUpperCase(),
+                        risk: hasRisk ? 'XS' : null,
+                        estimationSP,
+                        riskSP
+                    }
+                });
+                
+                i = j;
+            } else if (taskMatch) {
+                // Regular task format: M [repo] Task name
+                
                 // Add accumulated text as text block if any
                 if (currentText.trim()) {
                     blocks.push({
@@ -227,6 +295,7 @@ Respond with JSON in this format:
                 }
                 
                 const [, prefix, estimation, hasRisk, , repository, title, suffix] = taskMatch;
+                currentHeaderLevel = 10; // Set high level for non-heading tasks
                 const estimationSP = this.getEstimationSP(estimation.toUpperCase());
                 const riskSP = hasRisk ? this.getEstimationSP('XS') : null;
                 
@@ -234,13 +303,20 @@ Respond with JSON in this format:
                 let taskContent = line;
                 let j = i + 1;
                 
-                // Include subsequent lines until next task or heading
+                // Include subsequent lines until next task or heading of same/higher level
                 while (j < lines.length) {
                     const nextLine = lines[j];
                     const nextTaskMatch = nextLine.match(taskPattern);
+                    const nextHeadingTaskMatch = nextLine.match(headingTaskPattern);
                     const nextHeadingMatch = nextLine.match(headingPattern);
                     
-                    if (nextTaskMatch || nextHeadingMatch) {
+                    // Stop if we find another task
+                    if (nextTaskMatch || nextHeadingTaskMatch) {
+                        break;
+                    }
+                    
+                    // Stop if we find any heading for non-heading tasks
+                    if (nextHeadingMatch && currentHeaderLevel === 10) {
                         break;
                     }
                     
@@ -263,6 +339,17 @@ Respond with JSON in this format:
                 });
                 
                 i = j;
+            } else if (headingMatch) {
+                // Regular heading without task - check if it should end current task context
+                const headerLevel = parseInt(headingMatch[1]);
+                
+                // If this heading level is <= current task header level, it's text
+                if (headerLevel <= currentHeaderLevel) {
+                    currentHeaderLevel = 0; // Reset task context
+                }
+                
+                currentText += line + '\n';
+                i++;
             } else {
                 currentText += line + '\n';
                 i++;
