@@ -105,13 +105,80 @@ export async function registerRoutes(app: Express): Promise<Server> {
     app.post('/api/jira/create-tasks', async (req, res) => {
         try {
             const requestData = CreateTaskRequestSchema.parse(req.body);
-            const { sessionId, additionalRiskPercent } = requestData;
+            const { sessionId, additionalRiskPercent, tasks, parentJiraKey } = requestData;
 
-            // No session storage - return error for now
-            // In real implementation, would store session data in memory or cache
-            return res.status(501).json({
-                message: 'Создание задач временно недоступно - база данных отключена'
-            });
+            if (!tasks || tasks.length === 0) {
+                return res.status(400).json({
+                    message: 'Нет задач для создания'
+                });
+            }
+
+            const { jiraService } = getServices();
+            
+            // Prepare tasks for JIRA creation
+            const jiraTasks = tasks.map((task: any) => ({
+                summary: task.summary || task.title,
+                description: task.description || task.content || '',
+                estimation: task.estimation,
+                storyPoints: task.storyPoints
+            }));
+
+            let createdTasks: Array<{ key: string; id: string; summary: string; url: string }> = [];
+            const errors: string[] = [];
+
+            try {
+                if (jiraTasks.length === 1) {
+                    // Single task creation
+                    const result = await jiraService.createIssue(jiraTasks[0]);
+                    createdTasks.push({
+                        key: result.key,
+                        id: result.id,
+                        summary: jiraTasks[0].summary,
+                        url: `${process.env.JIRA_HOST}/browse/${result.key}`
+                    });
+                } else {
+                    // Bulk creation
+                    const bulkResult = await jiraService.createBulkIssues(jiraTasks);
+                    
+                    // Process successful creations
+                    createdTasks = bulkResult.issues.map((issue, index) => ({
+                        key: issue.key,
+                        id: issue.id,
+                        summary: jiraTasks[index].summary,
+                        url: `${process.env.JIRA_HOST}/browse/${issue.key}`
+                    }));
+
+                    // Process errors
+                    bulkResult.errors.forEach((error) => {
+                        const taskIndex = error.failedElementNumber;
+                        const taskTitle = jiraTasks[taskIndex]?.summary || `Задача ${taskIndex + 1}`;
+                        errors.push(`Ошибка создания "${taskTitle}": ${JSON.stringify(error.elementErrors)}`);
+                    });
+                }
+
+                // Link created tasks to parent if provided
+                if (parentJiraKey && createdTasks.length > 0) {
+                    for (const task of createdTasks) {
+                        try {
+                            await jiraService.linkIssues(parentJiraKey, task.key);
+                        } catch (linkError) {
+                            console.warn(`Failed to link ${task.key} to ${parentJiraKey}:`, linkError);
+                        }
+                    }
+                }
+
+            } catch (creationError: any) {
+                console.error('JIRA creation error:', creationError);
+                errors.push(`Ошибка при создании задач: ${creationError.message}`);
+            }
+
+            const response = {
+                success: errors.length === 0 && createdTasks.length > 0,
+                createdTasks,
+                errors
+            };
+
+            res.json(response);
 
         } catch (error: any) {
             console.error('Task creation error:', error);

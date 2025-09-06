@@ -96,6 +96,48 @@ export class JiraService {
         return result;
     }
 
+    async createBulkIssues(tasks: Array<{
+        summary: string;
+        description: string;
+        estimation?: string;
+        storyPoints?: number;
+    }>): Promise<{
+        issues: Array<{ id: string; key: string; self: string }>;
+        errors: Array<{ status: number; elementErrors: any; failedElementNumber: number }>;
+    }> {
+        const issueUpdates = tasks.map((taskData) => {
+            const fields: any = {
+                project: { key: 'HH' },
+                issuetype: { id: '3' }, // Task type
+                summary: taskData.summary,
+                description: taskData.description,
+            };
+
+            // Add custom fields if provided
+            if (taskData.estimation) {
+                fields.customfield_23911 = taskData.estimation;
+            }
+            if (taskData.storyPoints !== undefined) {
+                fields.customfield_11212 = taskData.storyPoints;
+            }
+
+            return {
+                update: {},
+                fields
+            };
+        });
+
+        const payload = { issueUpdates };
+
+        const response = await this.makeRequest('/rest/api/2/issue/bulk', {
+            method: 'POST',
+            body: JSON.stringify(payload),
+        });
+
+        const result = await response.json();
+        return result;
+    }
+
     async linkIssues(parentKey: string, childKey: string): Promise<void> {
         const payload = {
             type: { name: 'Inclusion' },
