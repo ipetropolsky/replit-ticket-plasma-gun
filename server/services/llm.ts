@@ -213,12 +213,14 @@ Respond with JSON in this format:
 
         // Patterns for different task formats and headings
         const taskPattern = /^(\s*\*?\s*)(XS|S|M|L|XL)(\+)?\s*(\[([^\]]+)\])?\s*(.+?)(\*?\s*)$/i;
+        const repositoryTaskPattern = /^(\s*\*?\s*)(\[([^\]]+)\])\s*(.+?)(\*?\s*)$/i; // Tasks starting with [repo]
         const headingPattern = /^h([1-6])\.\s(.+)$/;
         const headingTaskPattern = /^h([1-6])\.\s*(XS|S|M|L|XL)(\+)?\s*(\[([^\]]+)\])?\s*(.+?)$/i;
 
         while (i < lines.length) {
             const line = lines[i];
             const taskMatch = line.match(taskPattern);
+            const repositoryTaskMatch = line.match(repositoryTaskPattern);
             const headingMatch = line.match(headingPattern);
             const headingTaskMatch = line.match(headingTaskPattern);
             
@@ -247,11 +249,12 @@ Respond with JSON in this format:
                 while (j < lines.length) {
                     const nextLine = lines[j];
                     const nextTaskMatch = nextLine.match(taskPattern);
+                    const nextRepositoryTaskMatch = nextLine.match(repositoryTaskPattern);
                     const nextHeadingTaskMatch = nextLine.match(headingTaskPattern);
                     const nextHeadingMatch = nextLine.match(headingPattern);
                     
                     // Stop if we find another task
-                    if (nextTaskMatch || nextHeadingTaskMatch) {
+                    if (nextTaskMatch || nextRepositoryTaskMatch || nextHeadingTaskMatch) {
                         break;
                     }
                     
