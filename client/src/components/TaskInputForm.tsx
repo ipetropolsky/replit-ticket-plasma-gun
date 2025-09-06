@@ -5,23 +5,31 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { RefreshCw, Download } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
+import { RefreshCw, Download, FileText, Link } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { api } from '@/lib/api';
 import type { JiraTask } from '@shared/schema';
 
 interface TaskInputFormProps {
     onTaskLoaded: (task: JiraTask, decompositionText: string) => void;
+    onTextProvided: (decompositionText: string, parentJiraKey?: string) => void;
     currentTask: JiraTask | null;
     onRefresh: () => void;
 }
 
+type InputMode = 'jira' | 'text';
+
 export const TaskInputForm = ({ 
     onTaskLoaded, 
+    onTextProvided,
     currentTask, 
     onRefresh 
 }: TaskInputFormProps) => {
-    const [input, setInput] = useState('');
+    const [mode, setMode] = useState<InputMode>('jira');
+    const [jiraInput, setJiraInput] = useState('');
+    const [textInput, setTextInput] = useState('');
+    const [parentJiraKey, setParentJiraKey] = useState('');
     const { toast } = useToast();
 
     const fetchTaskMutation = useMutation({
@@ -45,9 +53,9 @@ export const TaskInputForm = ({
         },
     });
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleJiraSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (!input.trim()) {
+        if (!jiraInput.trim()) {
             toast({
                 variant: 'destructive',
                 title: 'Ошибка',
@@ -55,7 +63,24 @@ export const TaskInputForm = ({
             });
             return;
         }
-        fetchTaskMutation.mutate(input.trim());
+        fetchTaskMutation.mutate(jiraInput.trim());
+    };
+
+    const handleTextSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!textInput.trim()) {
+            toast({
+                variant: 'destructive',
+                title: 'Ошибка',
+                description: 'Введите текст декомпозиции',
+            });
+            return;
+        }
+        onTextProvided(textInput.trim(), parentJiraKey.trim() || undefined);
+        toast({
+            title: 'Текст обработан',
+            description: 'Декомпозиция готова к разбору',
+        });
     };
 
     const handleRefresh = () => {
@@ -66,51 +91,151 @@ export const TaskInputForm = ({
         }
     };
 
+    const TabButton = ({ 
+        isActive, 
+        onClick, 
+        icon: Icon, 
+        children 
+    }: { 
+        isActive: boolean; 
+        onClick: () => void; 
+        icon: any; 
+        children: React.ReactNode; 
+    }) => (
+        <button
+            type="button"
+            onClick={onClick}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
+                isActive 
+                    ? 'bg-primary text-primary-foreground' 
+                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
+            }`}
+            data-testid={`tab-${isActive ? 'active' : 'inactive'}`}
+        >
+            <Icon className="w-4 h-4" />
+            {children}
+        </button>
+    );
+
     return (
         <Card style={{ borderRadius: '24px', padding: '24px' }}>
             <CardHeader className="p-0 mb-4">
-                <CardTitle className="text-lg font-semibold">Исходная задача</CardTitle>
+                <CardTitle className="text-lg font-semibold">Источник декомпозиции</CardTitle>
             </CardHeader>
             <CardContent className="p-0 space-y-4">
-                <form onSubmit={handleSubmit}>
-                    <div className="space-y-4">
-                        <div>
-                            <Label className="text-sm font-medium mb-2 block">
-                                Ключ задачи или ссылка на JIRA
-                            </Label>
-                            <div className="flex gap-3">
+                {/* Табы */}
+                <div className="flex gap-2 mb-6">
+                    <TabButton
+                        isActive={mode === 'jira'}
+                        onClick={() => setMode('jira')}
+                        icon={Link}
+                    >
+                        Из JIRA
+                    </TabButton>
+                    <TabButton
+                        isActive={mode === 'text'}
+                        onClick={() => setMode('text')}
+                        icon={FileText}
+                    >
+                        Ввести текст
+                    </TabButton>
+                </div>
+
+                {/* Контент вкладки JIRA */}
+                {mode === 'jira' && (
+                    <form onSubmit={handleJiraSubmit}>
+                        <div className="space-y-4">
+                            <div>
+                                <Label className="text-sm font-medium mb-2 block">
+                                    Ключ задачи или ссылка на JIRA
+                                </Label>
+                                <div className="flex gap-3">
+                                    <Input
+                                        type="text"
+                                        className="flex-1"
+                                        style={{ padding: '16px', borderRadius: '12px', fontSize: '16px' }}
+                                        placeholder="PORTFOLIO-987654321 или https://jira.hh.ru/browse/PORTFOLIO-987654321"
+                                        value={jiraInput}
+                                        onChange={(e) => setJiraInput(e.target.value)}
+                                        disabled={fetchTaskMutation.isPending}
+                                        data-testid="input-jira-key"
+                                    />
+                                    <Button
+                                        type="submit"
+                                        className="px-6 py-3"
+                                        style={{ borderRadius: '12px', fontWeight: '600' }}
+                                        disabled={fetchTaskMutation.isPending}
+                                        data-testid="button-load-task"
+                                    >
+                                        {fetchTaskMutation.isPending ? (
+                                            <RefreshCw className="w-5 h-5 animate-spin mr-2" />
+                                        ) : (
+                                            <Download className="w-5 h-5 mr-2" />
+                                        )}
+                                        Загрузить
+                                    </Button>
+                                </div>
+                                <p className="text-muted-foreground text-sm mt-2">
+                                    Введите ключ задачи или полную ссылку из JIRA
+                                </p>
+                            </div>
+                        </div>
+                    </form>
+                )}
+
+                {/* Контент вкладки ручного ввода */}
+                {mode === 'text' && (
+                    <form onSubmit={handleTextSubmit}>
+                        <div className="space-y-4">
+                            <div>
+                                <Label className="text-sm font-medium mb-2 block">
+                                    Текст декомпозиции
+                                </Label>
+                                <Textarea
+                                    className="min-h-[200px]"
+                                    style={{ padding: '16px', borderRadius: '12px', fontSize: '16px' }}
+                                    placeholder="Вставьте текст декомпозиции задачи...\n\nПример:\n- Создать компонент авторизации\n- Добавить валидацию форм\n- Настроить роутинг"
+                                    value={textInput}
+                                    onChange={(e) => setTextInput(e.target.value)}
+                                    data-testid="textarea-decomposition"
+                                />
+                                <p className="text-muted-foreground text-sm mt-2">
+                                    Введите текст декомпозиции для разбора на задачи
+                                </p>
+                            </div>
+                            
+                            <div>
+                                <Label className="text-sm font-medium mb-2 block">
+                                    Родительская задача (необязательно)
+                                </Label>
                                 <Input
                                     type="text"
-                                    className="flex-1"
                                     style={{ padding: '16px', borderRadius: '12px', fontSize: '16px' }}
-                                    placeholder="PORTFOLIO-987654321 или https://jira.hh.ru/browse/PORTFOLIO-987654321"
-                                    value={input}
-                                    onChange={(e) => setInput(e.target.value)}
-                                    disabled={fetchTaskMutation.isPending}
-                                    data-testid="input-jira-key"
+                                    placeholder="PORTFOLIO-123456 (для привязки создаваемых задач)"
+                                    value={parentJiraKey}
+                                    onChange={(e) => setParentJiraKey(e.target.value)}
+                                    data-testid="input-parent-jira-key"
                                 />
-                                <Button
-                                    type="submit"
-                                    className="px-6 py-3"
-                                    style={{ borderRadius: '12px', fontWeight: '600' }}
-                                    disabled={fetchTaskMutation.isPending}
-                                    data-testid="button-load-task"
-                                >
-                                    {fetchTaskMutation.isPending ? (
-                                        <RefreshCw className="w-5 h-5 animate-spin mr-2" />
-                                    ) : (
-                                        <Download className="w-5 h-5 mr-2" />
-                                    )}
-                                    Загрузить
-                                </Button>
+                                <p className="text-muted-foreground text-sm mt-2">
+                                    Укажите ключ родительской задачи для привязки создаваемых подзадач
+                                </p>
                             </div>
-                            <p className="text-muted-foreground text-sm mt-2">
-                                Введите ключ задачи или полную ссылку из JIRA
-                            </p>
+
+                            <Button
+                                type="submit"
+                                className="w-full px-6 py-3"
+                                style={{ borderRadius: '12px', fontWeight: '600' }}
+                                data-testid="button-process-text"
+                            >
+                                <FileText className="w-5 h-5 mr-2" />
+                                Обработать текст
+                            </Button>
                         </div>
+                    </form>
+                )}
 
                         {/* Task Info Display */}
-                        {currentTask && (
+                        {currentTask && mode === 'jira' && (
                             <div 
                                 className="border border-border rounded-lg p-4 bg-muted/30"
                                 style={{ borderRadius: '12px' }}
