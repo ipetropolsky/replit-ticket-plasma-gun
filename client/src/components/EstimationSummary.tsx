@@ -1,14 +1,6 @@
-import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Info } from 'lucide-react';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 
 interface EstimationSummaryProps {
     estimation: {
@@ -72,7 +64,7 @@ export const EstimationSummary = ({
             day: 'numeric'
         });
         
-        const dayNames = ['ВС', 'ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ'];
+        const dayNames = ['воскресенье', 'понедельник', 'вторник', 'среда', 'четверг', 'пятница', 'суббота'];
         const dayName = dayNames[deliveryDate.getDay()];
         
         return { dateString, dayName };
@@ -210,15 +202,18 @@ export const EstimationSummary = ({
                             <CardTitle className="text-base font-medium">Итого с рисками</CardTitle>
                         </CardHeader>
                         <CardContent className="pt-0">
-                            <div className="text-center">
+                            <div className="text-left">
                                 <div 
                                     className="text-3xl font-bold text-primary"
                                     data-testid="total-estimation"
                                 >
                                     {total} SP
                                 </div>
-                                <div className="text-sm text-muted-foreground mt-1">
-                                    ≈ {workingDays} рабочих дней
+                                <div 
+                                    className="font-mono text-sm bg-background p-2 rounded mt-2"
+                                    style={{ borderRadius: '8px' }}
+                                >
+                                    (SP × 2) ÷ {parallelizationCoefficient} ≈ {workingDays} рабочих дней
                                 </div>
                             </div>
                         </CardContent>
@@ -227,26 +222,12 @@ export const EstimationSummary = ({
                     {/* Delivery Date Card */}
                     <Card className="border border-border">
                         <CardHeader className="pb-3">
-                            <CardTitle className="text-base font-medium flex items-center space-x-2">
-                                <span>Дата поставки</span>
-                                <TooltipProvider>
-                                    <Tooltip>
-                                        <TooltipTrigger asChild>
-                                            <Info className="h-4 w-4 text-muted-foreground cursor-help" />
-                                        </TooltipTrigger>
-                                        <TooltipContent>
-                                            <div className="font-mono text-sm">
-                                                (SP × 2) ÷ {parallelizationCoefficient} = {workingDays} дней
-                                            </div>
-                                        </TooltipContent>
-                                    </Tooltip>
-                                </TooltipProvider>
-                            </CardTitle>
+                            <CardTitle className="text-base font-medium">Дата поставки</CardTitle>
                         </CardHeader>
                         <CardContent className="pt-0">
-                            <div className="text-center">
+                            <div className="text-left">
                                 <div 
-                                    className="text-lg font-semibold text-primary"
+                                    className="text-3xl font-bold text-primary"
                                     data-testid="estimated-delivery-date"
                                 >
                                     {(() => {
