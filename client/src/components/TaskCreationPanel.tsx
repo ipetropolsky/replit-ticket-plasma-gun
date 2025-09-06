@@ -21,6 +21,8 @@ interface TaskCreationPanelProps {
     };
     additionalRiskPercent: number;
     onAdditionalRiskChange: (percent: number) => void;
+    blocks?: any[]; // DecompositionBlocks for task creation
+    parentJiraKey?: string; // For linking created tasks
 }
 
 export const TaskCreationPanel = ({
@@ -28,13 +30,32 @@ export const TaskCreationPanel = ({
     estimation,
     additionalRiskPercent,
     onAdditionalRiskChange,
+    blocks = [],
+    parentJiraKey,
 }: TaskCreationPanelProps) => {
     const [createdTasks, setCreatedTasks] = useState<TaskCreationResponse['createdTasks']>([]);
     const [errors, setErrors] = useState<string[]>([]);
     const { toast } = useToast();
 
     const createTasksMutation = useMutation({
-        mutationFn: () => api.createTasks({ sessionId, additionalRiskPercent }),
+        mutationFn: () => {
+            // Extract tasks from blocks
+            const tasks = blocks.filter(block => block.type === 'task' && block.taskInfo).map(block => ({
+                title: block.taskInfo.title,
+                summary: `${block.taskInfo.repository ? `[${block.taskInfo.repository}] ` : ''}${block.taskInfo.title}`,
+                content: block.content,
+                description: block.content,
+                estimation: block.taskInfo.estimation,
+                storyPoints: block.taskInfo.estimationSP
+            }));
+            
+            return api.createTasks({ 
+                sessionId, 
+                additionalRiskPercent,
+                tasks,
+                parentJiraKey
+            });
+        },
         onSuccess: (data) => {
             setCreatedTasks(data.createdTasks);
             setErrors(data.errors);

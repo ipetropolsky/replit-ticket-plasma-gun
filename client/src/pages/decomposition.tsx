@@ -120,6 +120,8 @@ export const DecompositionPage = () => {
                                 estimation={estimation}
                                 additionalRiskPercent={additionalRiskPercent}
                                 onAdditionalRiskChange={setAdditionalRiskPercent}
+                                blocks={blocks}
+                                parentJiraKey={parentJiraKey}
                             />
                         )}
                     </div>
