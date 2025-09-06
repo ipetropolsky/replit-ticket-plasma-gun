@@ -1,5 +1,5 @@
 import OpenAI from 'openai';
-import { DecompositionBlock } from '@shared/schema';
+import { DecompositionBlock } from 'shared/schema';
 
 export class LLMService {
     private openai: OpenAI;

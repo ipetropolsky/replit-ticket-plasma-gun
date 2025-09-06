@@ -8,7 +8,7 @@ import {
     JiraTaskSchema, 
     CreateTaskRequestSchema,
     TaskCreationResponseSchema 
-} from "@shared/schema";
+} from "shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
     const jiraService = new JiraService();

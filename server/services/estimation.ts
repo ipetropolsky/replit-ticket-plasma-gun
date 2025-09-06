@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { EstimationMapping, DecompositionBlock } from '@shared/schema';
+import { EstimationMapping, DecompositionBlock } from 'shared/schema';
 
 export class EstimationService {
     private mapping: EstimationMapping;

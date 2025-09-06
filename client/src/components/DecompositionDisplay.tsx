@@ -1,11 +1,11 @@
 import { useEffect } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from 'src/components/ui/card';
+import { Badge } from 'src/components/ui/badge';
 import { CheckCircle, Loader2 } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { api } from '@/lib/api';
-import type { DecompositionBlock } from '@shared/schema';
+import { useToast } from 'src/hooks/use-toast';
+import { api } from 'src/lib/api';
+import type { DecompositionBlock } from 'shared/schema';
 
 interface DecompositionDisplayProps {
     decompositionText: string;

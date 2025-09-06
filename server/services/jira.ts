@@ -1,4 +1,4 @@
-import { JiraTask } from '@shared/schema';
+import { JiraTask } from 'shared/schema';
 
 interface JiraConfig {
     host: string;
