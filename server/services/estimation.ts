@@ -20,6 +20,7 @@ export class EstimationService {
                 XS: 0.5,
                 S: 1,
                 M: 2,
+                L: 3
             };
         }
     }

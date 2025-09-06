@@ -371,11 +371,11 @@ Respond with JSON in this format:
     
     private getEstimationSP(size: string): number {
         const mapping: Record<string, number> = {
-            'XS': 1,
-            'S': 2, 
-            'M': 3,
-            'L': 5,
-            'XL': 8
+            'XS': 0.5,
+            'S': 1, 
+            'M': 2,
+            'L': 3,
+            'XL': 5
         };
         return mapping[size] || 0;
     }
