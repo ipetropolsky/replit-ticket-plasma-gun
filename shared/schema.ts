@@ -1,48 +1,4 @@
-import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, jsonb, integer, timestamp, boolean } from "drizzle-orm/pg-core";
-import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
-
-export const users = pgTable("users", {
-    id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-    username: text("username").notNull().unique(),
-    password: text("password").notNull(),
-});
-
-export const decompositionSessions = pgTable("decomposition_sessions", {
-    id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-    jiraKey: text("jira_key").notNull(),
-    jiraTaskData: jsonb("jira_task_data"),
-    decompositionText: text("decomposition_text"),
-    parsedBlocks: jsonb("parsed_blocks"),
-    totalEstimation: integer("total_estimation"), // in story points * 10 (to avoid decimals)
-    additionalRiskPercent: integer("additional_risk_percent").default(20),
-    createdTasks: jsonb("created_tasks"),
-    status: text("status").notNull().default("pending"), // pending, processing, completed, error
-    createdAt: timestamp("created_at").defaultNow(),
-    updatedAt: timestamp("updated_at").defaultNow(),
-});
-
-export const insertUserSchema = createInsertSchema(users).pick({
-    username: true,
-    password: true,
-});
-
-export const insertDecompositionSessionSchema = createInsertSchema(decompositionSessions).pick({
-    jiraKey: true,
-    jiraTaskData: true,
-    decompositionText: true,
-    parsedBlocks: true,
-    totalEstimation: true,
-    additionalRiskPercent: true,
-    createdTasks: true,
-    status: true,
-});
-
-export type InsertUser = z.infer<typeof insertUserSchema>;
-export type User = typeof users.$inferSelect;
-export type DecompositionSession = typeof decompositionSessions.$inferSelect;
-export type InsertDecompositionSession = z.infer<typeof insertDecompositionSessionSchema>;
 
 // API Types
 export const JiraTaskSchema = z.object({
