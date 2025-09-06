@@ -26,6 +26,7 @@ export const DecompositionPage = () => {
     const [sessionId, setSessionId] = useState<string>('');
     const [mapping, setMapping] = useState<Record<string, number>>({});
     const [additionalRiskPercent, setAdditionalRiskPercent] = useState(20);
+    const [parallelizationCoefficient, setParallelizationCoefficient] = useState(1.0);
     const [parentJiraKey, setParentJiraKey] = useState<string>('');
     const [availableProviders, setAvailableProviders] = useState<Array<{ name: string; available: boolean }>>([]);
     const [selectedProvider, setSelectedProvider] = useState<string>('regexp');
@@ -126,6 +127,8 @@ export const DecompositionPage = () => {
                                 estimation={estimation}
                                 additionalRiskPercent={additionalRiskPercent}
                                 onAdditionalRiskChange={setAdditionalRiskPercent}
+                                parallelizationCoefficient={parallelizationCoefficient}
+                                onParallelizationCoefficientChange={setParallelizationCoefficient}
                                 mapping={mapping}
                             />
                         )}

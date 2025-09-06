@@ -13,6 +13,8 @@ interface EstimationSummaryProps {
     mapping: Record<string, number>;
     additionalRiskPercent: number;
     onAdditionalRiskChange: (percent: number) => void;
+    parallelizationCoefficient: number;
+    onParallelizationCoefficientChange: (coefficient: number) => void;
 }
 
 export const EstimationSummary = ({
@@ -20,6 +22,8 @@ export const EstimationSummary = ({
     mapping,
     additionalRiskPercent,
     onAdditionalRiskChange,
+    parallelizationCoefficient,
+    onParallelizationCoefficientChange,
 }: EstimationSummaryProps) => {
     const calculateAdditionalRisks = () => {
         if (!estimation) return 0;
@@ -33,7 +37,9 @@ export const EstimationSummary = ({
     };
 
     const calculateWorkingDays = () => {
-        return Math.ceil(calculateTotal() * 2);
+        const rawDays = calculateTotal() * 2;
+        const acceleratedDays = rawDays / parallelizationCoefficient;
+        return Math.ceil(acceleratedDays);
     };
 
     const calculateDeliveryDate = () => {
@@ -83,39 +89,39 @@ export const EstimationSummary = ({
                 <CardTitle className="text-lg font-semibold">Суммарная оценка</CardTitle>
             </CardHeader>
             <CardContent className="p-0 space-y-4">
-                {/* T-shirt Size Formula */}
-                <div>
-                    <div className="text-sm text-muted-foreground mb-2">Оценка в майках:</div>
-                    <div 
-                        className="bg-muted p-3 rounded text-sm font-mono"
-                        style={{ borderRadius: '8px' }}
-                        data-testid="estimation-formula"
-                    >
-                        {estimation.formula}
-                    </div>
-                </div>
-
-                {/* Risk Formula */}
-                {estimation.risks > 0 && (
+                {/* T-shirt Size Formulas - Side by Side */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <div className="text-sm text-muted-foreground mb-2">Риски в майках:</div>
+                        <div className="text-sm text-muted-foreground mb-2">Оценка:</div>
                         <div 
                             className="bg-muted p-3 rounded text-sm font-mono"
                             style={{ borderRadius: '8px' }}
-                            data-testid="risk-formula"
+                            data-testid="estimation-formula"
                         >
-                            {estimation.riskFormula}
+                            {estimation.formula}
                         </div>
                     </div>
-                )}
+                    {estimation.risks > 0 && (
+                        <div>
+                            <div className="text-sm text-muted-foreground mb-2">Риски:</div>
+                            <div 
+                                className="bg-muted p-3 rounded text-sm font-mono"
+                                style={{ borderRadius: '8px' }}
+                                data-testid="risk-formula"
+                            >
+                                {estimation.riskFormula}
+                            </div>
+                        </div>
+                    )}
+                </div>
 
-                {/* Additional Risks Configuration */}
+                {/* Additional Risks and Parallelization Configuration */}
                 <div 
                     className="border border-border rounded-lg p-4"
                     style={{ borderRadius: '12px' }}
                 >
                     <h3 className="font-medium text-foreground mb-3">Дополнительные риски</h3>
-                    <div className="flex items-center space-x-4">
+                    <div className="flex items-center space-x-4 mb-4">
                         <Label className="text-sm text-muted-foreground whitespace-nowrap">
                             Процент от общей оценки:
                         </Label>
@@ -137,33 +143,29 @@ export const EstimationSummary = ({
                             = {additionalRisks} SP
                         </span>
                     </div>
-                </div>
-
-                {/* Delivery Date Estimation */}
-                <div 
-                    className="border border-border rounded-lg p-4 bg-muted/30"
-                    style={{ borderRadius: '12px' }}
-                >
-                    <h3 className="font-medium text-foreground mb-3">Расчет сроков поставки</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="text-sm">
-                            <span className="text-muted-foreground">Формула расчета:</span>
-                            <div 
-                                className="font-mono text-sm bg-background p-2 rounded mt-1"
-                                style={{ borderRadius: '8px' }}
-                            >
-                                1 SP = 2 рабочих дня
-                            </div>
-                        </div>
-                        <div className="text-sm">
-                            <span className="text-muted-foreground">Ориентировочная дата поставки:</span>
-                            <div 
-                                className="text-lg font-semibold text-primary mt-1"
-                                data-testid="estimated-delivery-date"
-                            >
-                                {calculateDeliveryDate()}
-                            </div>
-                        </div>
+                    
+                    <h3 className="font-medium text-foreground mb-3">Распараллеливание</h3>
+                    <div className="flex items-center space-x-4">
+                        <Label className="text-sm text-muted-foreground whitespace-nowrap">
+                            Коэффициент:
+                        </Label>
+                        <Input
+                            type="number"
+                            className="w-20 text-center"
+                            value={parallelizationCoefficient}
+                            min={0.1}
+                            max={10}
+                            step={0.1}
+                            onChange={(e) => onParallelizationCoefficientChange(parseFloat(e.target.value) || 1.0)}
+                            style={{
+                                borderRadius: '12px',
+                                fontSize: '16px'
+                            }}
+                            data-testid="input-parallelization-coefficient"
+                        />
+                        <span className="text-xs text-muted-foreground ml-4">
+                            Ускорение от работы в несколько рук
+                        </span>
                     </div>
                 </div>
 
@@ -183,6 +185,34 @@ export const EstimationSummary = ({
                     </div>
                 </div>
 
+                {/* Delivery Date Estimation */}
+                <div 
+                    className="border border-border rounded-lg p-4 bg-muted/30"
+                    style={{ borderRadius: '12px' }}
+                >
+                    <h3 className="font-medium text-foreground mb-3">Расчет сроков поставки</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="text-sm">
+                            <span className="text-muted-foreground">Формула расчета:</span>
+                            <div 
+                                className="font-mono text-sm bg-background p-2 rounded mt-1"
+                                style={{ borderRadius: '8px' }}
+                            >
+                                (SP × 2) ÷ {parallelizationCoefficient} = {workingDays} дней
+                            </div>
+                        </div>
+                        <div className="text-sm">
+                            <span className="text-muted-foreground">Ориентировочная дата поставки:</span>
+                            <div 
+                                className="text-lg font-semibold text-primary mt-1"
+                                data-testid="estimated-delivery-date"
+                            >
+                                {calculateDeliveryDate()}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 {/* Task Statistics */}
                 <div className="border-t border-border pt-4 text-sm">
                     <div className="flex justify-between items-center">
@@ -196,6 +226,14 @@ export const EstimationSummary = ({
                     <div className="flex justify-between items-center">
                         <span className="text-muted-foreground">Встроенные риски:</span>
                         <span className="font-medium">{estimation.risks} SP</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                        <span className="text-muted-foreground">Дополнительные риски:</span>
+                        <span className="font-medium">{additionalRisks} SP</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                        <span className="text-muted-foreground">Количество рабочих дней:</span>
+                        <span className="font-medium">{workingDays}</span>
                     </div>
                 </div>
             </CardContent>
