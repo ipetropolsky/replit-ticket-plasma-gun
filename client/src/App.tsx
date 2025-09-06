@@ -3,8 +3,8 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "src/components/ui/toaster";
 import { TooltipProvider } from "src/components/ui/tooltip";
-import NotFound from "src/pages/not-found";
-import DecompositionPage from "src/pages/decomposition";
+import { NotFound } from "src/pages/not-found";
+import { DecompositionPage } from "src/pages/decomposition";
 
 function Router() {
     return (
@@ -26,4 +26,4 @@ function App() {
     );
 }
 
-export default App;
+export { App };

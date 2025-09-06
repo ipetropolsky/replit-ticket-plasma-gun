@@ -19,7 +19,7 @@ interface EstimationData {
     riskFormula: string;
 }
 
-export default function DecompositionPage() {
+export const DecompositionPage = () => {
     const [currentTask, setCurrentTask] = useState<JiraTask | null>(null);
     const [decompositionText, setDecompositionText] = useState<string>('');
     const [blocks, setBlocks] = useState<DecompositionBlock[]>([]);
@@ -167,4 +167,4 @@ export default function DecompositionPage() {
             </div>
         </div>
     );
-}
+};
