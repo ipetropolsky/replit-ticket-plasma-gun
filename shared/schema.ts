@@ -83,6 +83,15 @@ export const EstimationMappingSchema = z.record(z.string(), z.number());
 export const CreateTaskRequestSchema = z.object({
     sessionId: z.string(),
     additionalRiskPercent: z.number().min(0).max(100),
+    tasks: z.array(z.object({
+        title: z.string(),
+        content: z.string(),
+        estimation: z.string().optional(),
+        storyPoints: z.number().optional(),
+        summary: z.string().optional(),
+        description: z.string().optional(),
+    })),
+    parentJiraKey: z.string().optional(),
 });
 
 export const TaskCreationResponseSchema = z.object({
