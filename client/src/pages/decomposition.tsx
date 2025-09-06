@@ -27,11 +27,23 @@ export const DecompositionPage = () => {
     const [sessionId, setSessionId] = useState<string>('');
     const [mapping, setMapping] = useState<Record<string, number>>({});
     const [additionalRiskPercent, setAdditionalRiskPercent] = useState(20);
+    const [parentJiraKey, setParentJiraKey] = useState<string>('');
 
     const handleTaskLoaded = (task: JiraTask, text: string) => {
         setCurrentTask(task);
         setDecompositionText(text);
+        setParentJiraKey(task.key); // Set parent key from loaded task
         // Reset parsing results when new task is loaded
+        setBlocks([]);
+        setEstimation(null);
+        setSessionId('');
+    };
+
+    const handleTextProvided = (text: string, parentKey?: string) => {
+        setCurrentTask(null); // No JIRA task loaded
+        setDecompositionText(text);
+        setParentJiraKey(parentKey || ''); // Optional parent key
+        // Reset parsing results when new text is provided
         setBlocks([]);
         setEstimation(null);
         setSessionId('');
@@ -52,6 +64,7 @@ export const DecompositionPage = () => {
     const handleRefresh = () => {
         setCurrentTask(null);
         setDecompositionText('');
+        setParentJiraKey('');
         setBlocks([]);
         setEstimation(null);
         setSessionId('');
@@ -87,6 +100,7 @@ export const DecompositionPage = () => {
                     <div className="lg:col-span-2 space-y-6">
                         <TaskInputForm 
                             onTaskLoaded={handleTaskLoaded}
+                            onTextProvided={handleTextProvided}
                             currentTask={currentTask}
                             onRefresh={handleRefresh}
                         />
@@ -94,7 +108,7 @@ export const DecompositionPage = () => {
                         {decompositionText && (
                             <DecompositionDisplay
                                 decompositionText={decompositionText}
-                                jiraKey={currentTask?.key || ''}
+                                jiraKey={currentTask?.key || parentJiraKey}
                                 onParsingComplete={handleParsingComplete}
                                 blocks={blocks}
                             />

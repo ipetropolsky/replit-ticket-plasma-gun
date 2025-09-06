@@ -156,7 +156,7 @@ export const TaskInputForm = ({
                                         style={{ padding: '16px', borderRadius: '12px', fontSize: '16px' }}
                                         placeholder="PORTFOLIO-987654321 или https://jira.hh.ru/browse/PORTFOLIO-987654321"
                                         value={jiraInput}
-                                        onChange={(e) => setJiraInput(e.target.value)}
+                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setJiraInput(e.target.value)}
                                         disabled={fetchTaskMutation.isPending}
                                         data-testid="input-jira-key"
                                     />
@@ -196,7 +196,7 @@ export const TaskInputForm = ({
                                     style={{ padding: '16px', borderRadius: '12px', fontSize: '16px' }}
                                     placeholder="Вставьте текст декомпозиции задачи...\n\nПример:\n- Создать компонент авторизации\n- Добавить валидацию форм\n- Настроить роутинг"
                                     value={textInput}
-                                    onChange={(e) => setTextInput(e.target.value)}
+                                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setTextInput(e.target.value)}
                                     data-testid="textarea-decomposition"
                                 />
                                 <p className="text-muted-foreground text-sm mt-2">
@@ -213,7 +213,7 @@ export const TaskInputForm = ({
                                     style={{ padding: '16px', borderRadius: '12px', fontSize: '16px' }}
                                     placeholder="PORTFOLIO-123456 (для привязки создаваемых задач)"
                                     value={parentJiraKey}
-                                    onChange={(e) => setParentJiraKey(e.target.value)}
+                                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setParentJiraKey(e.target.value)}
                                     data-testid="input-parent-jira-key"
                                 />
                                 <p className="text-muted-foreground text-sm mt-2">
@@ -234,53 +234,51 @@ export const TaskInputForm = ({
                     </form>
                 )}
 
-                        {/* Task Info Display */}
-                        {currentTask && mode === 'jira' && (
-                            <div 
-                                className="border border-border rounded-lg p-4 bg-muted/30"
-                                style={{ borderRadius: '12px' }}
-                                data-testid="task-info"
-                            >
-                                <div className="flex justify-between items-start mb-3">
-                                    <div>
-                                        <h3 className="font-semibold text-foreground">
-                                            {currentTask.key}: {currentTask.fields.summary}
-                                        </h3>
-                                        <p className="text-muted-foreground text-sm">
-                                            {currentTask.fields.status.name}
-                                        </p>
-                                    </div>
-                                    <Button
-                                        variant="secondary"
-                                        size="sm"
-                                        onClick={handleRefresh}
-                                        disabled={fetchTaskMutation.isPending}
-                                        data-testid="button-refresh-task"
-                                    >
-                                        <RefreshCw 
-                                            className={`w-4 h-4 mr-1 ${fetchTaskMutation.isPending ? 'animate-spin' : ''}`} 
-                                        />
-                                        Обновить
-                                    </Button>
-                                </div>
-                                <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                                    <span>
-                                        Исполнитель: {' '}
-                                        <span className="text-foreground">
-                                            {currentTask.fields.assignee?.displayName || 'Не назначен'}
-                                        </span>
-                                    </span>
-                                    <span>
-                                        Приоритет: {' '}
-                                        <Badge variant="outline" className="text-xs">
-                                            {currentTask.fields.priority?.name || 'Не установлен'}
-                                        </Badge>
-                                    </span>
-                                </div>
+                {/* Task Info Display */}
+                {currentTask && mode === 'jira' && (
+                    <div 
+                        className="border border-border rounded-lg p-4 bg-muted/30"
+                        style={{ borderRadius: '12px' }}
+                        data-testid="task-info"
+                    >
+                        <div className="flex justify-between items-start mb-3">
+                            <div>
+                                <h3 className="font-semibold text-foreground">
+                                    {currentTask.key}: {currentTask.fields.summary}
+                                </h3>
+                                <p className="text-muted-foreground text-sm">
+                                    {currentTask.fields.status.name}
+                                </p>
                             </div>
-                        )}
+                            <Button
+                                variant="secondary"
+                                size="sm"
+                                onClick={handleRefresh}
+                                disabled={fetchTaskMutation.isPending}
+                                data-testid="button-refresh-task"
+                            >
+                                <RefreshCw 
+                                    className={`w-4 h-4 mr-1 ${fetchTaskMutation.isPending ? 'animate-spin' : ''}`} 
+                                />
+                                Обновить
+                            </Button>
+                        </div>
+                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                            <span>
+                                Исполнитель: {' '}
+                                <span className="text-foreground">
+                                    {currentTask.fields.assignee?.displayName || 'Не назначен'}
+                                </span>
+                            </span>
+                            <span>
+                                Приоритет: {' '}
+                                <Badge variant="outline" className="text-xs">
+                                    {currentTask.fields.priority?.name || 'Не установлен'}
+                                </Badge>
+                            </span>
+                        </div>
                     </div>
-                </form>
+                )}
             </CardContent>
         </Card>
     );
