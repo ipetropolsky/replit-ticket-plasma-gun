@@ -39,7 +39,7 @@ export const EstimationSummary = ({
                     <CardTitle className="text-lg font-semibold">Суммарная оценка</CardTitle>
                 </CardHeader>
                 <CardContent className="p-0">
-                    <div className="text-center text-muted-foreground">
+                    <div className="text-left text-muted-foreground">
                         <p>Загрузите и обработайте задачу для отображения оценок</p>
                     </div>
                 </CardContent>

@@ -4,7 +4,6 @@ import { DecompositionDisplay } from '@/components/DecompositionDisplay';
 import { EstimationSummary } from '@/components/EstimationSummary';
 import { TaskCreationPanel } from '@/components/TaskCreationPanel';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { ClipboardList } from 'lucide-react';
 import type { 
     JiraTask, 
@@ -139,14 +138,20 @@ export const DecompositionPage = () => {
                             <CardContent className="space-y-4 text-sm">
                                 {/* Size Mapping */}
                                 <div>
-                                    <div className="text-muted-foreground mb-2">Маппинг размеров:</div>
+                                    <div className="text-muted-foreground mb-2">Майки и SP:</div>
                                     <div className="space-y-1">
-                                        {Object.entries(mapping).map(([size, sp]) => (
-                                            <div key={size} className="flex justify-between">
-                                                <span>{size}</span>
-                                                <span className="font-medium">{sp} SP</span>
+                                        {Object.entries(mapping).length > 0 ? (
+                                            Object.entries(mapping).map(([size, sp]) => (
+                                                <div key={size} className="flex justify-between">
+                                                    <span>{size}</span>
+                                                    <span className="font-medium">{sp} SP</span>
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <div className="text-sm text-muted-foreground">
+                                                XS: 1 SP • S: 2 SP • M: 3 SP • L: 5 SP • XL: 8 SP
                                             </div>
-                                        ))}
+                                        )}
                                     </div>
                                 </div>
 

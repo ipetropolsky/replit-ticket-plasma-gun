@@ -162,8 +162,7 @@ export const TaskInputForm = ({
                                     />
                                     <Button
                                         type="submit"
-                                        className="px-6 py-3"
-                                        style={{ borderRadius: '12px', fontWeight: '600' }}
+                                        className="btn-custom px-6 py-3"
                                         disabled={fetchTaskMutation.isPending}
                                         data-testid="button-load-task"
                                     >
@@ -210,11 +209,11 @@ export const TaskInputForm = ({
                                     onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setTextInput(e.target.value)}
                                     data-testid="textarea-decomposition"
                                 />
+                            </div>
 
                             <Button
                                 type="submit"
-                                className="w-full px-6 py-3"
-                                style={{ borderRadius: '12px', fontWeight: '600' }}
+                                className="btn-custom w-full px-6 py-3"
                                 data-testid="button-process-text"
                             >
                                 <FileText className="w-5 h-5 mr-2" />
