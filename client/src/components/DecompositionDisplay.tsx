@@ -57,13 +57,15 @@ export const DecompositionDisplay = ({
     }, [decompositionText, blocks.length]);
 
     const getEstimationColor = (estimation: string | null): string => {
-        if (!estimation) return 'text-muted-foreground';
+        if (!estimation || estimation === '?') return 'text-orange-500';
         
         switch (estimation) {
             case 'XS': return 'text-blue-600';
             case 'S': return 'text-green-600';
             case 'M': return 'text-orange-600';
-            default: return 'text-muted-foreground';
+            case 'L': return 'text-red-500';
+            case 'XL': return 'text-purple-600';
+            default: return 'text-orange-500';
         }
     };
 

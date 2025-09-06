@@ -28,6 +28,7 @@ export class EstimationService {
         baseEstimation: number;
         risks: number;
         taskCount: number;
+        tasksWithoutEstimation: number;
         formula: string;
         riskFormula: string;
     } {
@@ -36,6 +37,7 @@ export class EstimationService {
         let baseEstimation = 0;
         let risks = 0;
         let taskCount = 0;
+        let tasksWithoutEstimation = 0;
         const estimations: string[] = [];
         const riskItems: string[] = [];
 
@@ -47,6 +49,8 @@ export class EstimationService {
             if (block.taskInfo.estimation && block.taskInfo.estimationSP) {
                 baseEstimation += block.taskInfo.estimationSP;
                 estimations.push(block.taskInfo.estimation);
+            } else if (block.taskInfo.estimation === '?' || !block.taskInfo.estimation) {
+                tasksWithoutEstimation++;
             }
             
             if (block.taskInfo.risk && block.taskInfo.riskSP) {
@@ -66,6 +70,7 @@ export class EstimationService {
             baseEstimation,
             risks,
             taskCount,
+            tasksWithoutEstimation,
             formula,
             riskFormula,
         };

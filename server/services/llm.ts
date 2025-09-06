@@ -232,10 +232,18 @@ Respond with JSON in this format:
                     currentText = '';
                 }
                 
-                const [, prefix, estimation, hasRisk, , repository, title, suffix] = taskMatch;
-                currentHeaderLevel = 10; // Set high level for non-heading tasks
-                const estimationSP = this.getEstimationSP(estimation.toUpperCase());
-                const riskSP = hasRisk ? this.getEstimationSP('XS') : null;
+                const [, prefix, rawEstimation, repository, title] = taskMatch;
+                
+                // Determine header level
+                if (prefix && prefix.startsWith('h')) {
+                    const headerMatch = prefix.match(/h([1-6])/);
+                    currentHeaderLevel = headerMatch ? parseInt(headerMatch[1]) : 10;
+                } else {
+                    currentHeaderLevel = 10; // Non-heading tasks
+                }
+                
+                // Parse estimation and risk
+                const { estimation, risk, estimationSP, riskSP } = this.parseEstimation(rawEstimation);
                 
                 // Collect task content including description lines
                 let taskContent = line;
@@ -245,17 +253,22 @@ Respond with JSON in this format:
                 while (j < lines.length) {
                     const nextLine = lines[j];
                     const nextTaskMatch = nextLine.match(taskPattern);
-                    const nextHeadingTaskMatch = nextLine.match(headingTaskPattern);
                     const nextHeadingMatch = nextLine.match(headingPattern);
                     
                     // Stop if we find another task
-                    if (nextTaskMatch || nextHeadingTaskMatch) {
+                    if (nextTaskMatch) {
                         break;
                     }
                     
-                    // Stop if we find any heading for non-heading tasks
-                    if (nextHeadingMatch && currentHeaderLevel === 10) {
-                        break;
+                    // Stop if we find heading of same or higher level
+                    if (nextHeadingMatch) {
+                        const nextHeaderLevel = parseInt(nextHeadingMatch[1]);
+                        if (currentHeaderLevel !== 10 && nextHeaderLevel <= currentHeaderLevel) {
+                            break;
+                        } else if (currentHeaderLevel === 10) {
+                            // For non-heading tasks, any heading stops the task
+                            break;
+                        }
                     }
                     
                     taskContent += '\n' + nextLine;
@@ -269,8 +282,8 @@ Respond with JSON in this format:
                     taskInfo: {
                         title: title.trim(),
                         repository: repository || null,
-                        estimation: estimation.toUpperCase(),
-                        risk: hasRisk ? 'XS' : null,
+                        estimation,
+                        risk,
                         estimationSP,
                         riskSP
                     }
@@ -323,6 +336,37 @@ Respond with JSON in this format:
                 taskInfo: block.type === 'task' ? block.taskInfo : null,
             };
         });
+    }
+    
+    private parseEstimation(rawEstimation?: string): {
+        estimation: string | null;
+        risk: string | null;
+        estimationSP: number | null;
+        riskSP: number | null;
+    } {
+        if (!rawEstimation) {
+            return { estimation: null, risk: null, estimationSP: null, riskSP: null };
+        }
+        
+        const cleanEstimation = rawEstimation.trim().toUpperCase();
+        
+        // Check for risk indicator (+)
+        const hasRisk = cleanEstimation.endsWith('+');
+        const baseEstimation = hasRisk ? cleanEstimation.slice(0, -1) : cleanEstimation;
+        
+        // Check if estimation is valid (XS, S, M, L, XL)
+        const isValidEstimation = this.isValidEstimation(baseEstimation);
+        
+        return {
+            estimation: isValidEstimation ? baseEstimation : '?',
+            risk: hasRisk && isValidEstimation ? 'XS' : null,
+            estimationSP: isValidEstimation ? this.getEstimationSP(baseEstimation) : null,
+            riskSP: hasRisk && isValidEstimation ? this.getEstimationSP('XS') : null
+        };
+    }
+    
+    private isValidEstimation(size: string): boolean {
+        return ['XS', 'S', 'M', 'L', 'XL'].includes(size);
     }
     
     private getEstimationSP(size: string): number {

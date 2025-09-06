@@ -7,6 +7,7 @@ interface EstimationSummaryProps {
         baseEstimation: number;
         risks: number;
         taskCount: number;
+        tasksWithoutEstimation: number;
         formula: string;
         riskFormula: string;
     } | null;
@@ -89,6 +90,25 @@ export const EstimationSummary = ({
                 <CardTitle className="text-lg font-semibold">Суммарная оценка</CardTitle>
             </CardHeader>
             <CardContent className="p-0 space-y-4">
+                {/* Warning for tasks without estimation */}
+                {estimation.tasksWithoutEstimation > 0 && (
+                    <div 
+                        className="border border-orange-200 bg-orange-50 rounded-lg p-3"
+                        style={{ borderRadius: '12px' }}
+                        data-testid="warning-tasks-without-estimation"
+                    >
+                        <div className="flex items-center space-x-2">
+                            <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                            <span className="text-sm text-orange-800 font-medium">
+                                Внимание: {estimation.tasksWithoutEstimation} {estimation.tasksWithoutEstimation === 1 ? 'задача' : 'задач'} без оценки (отмечены "?")
+                            </span>
+                        </div>
+                        <div className="text-xs text-orange-700 mt-1">
+                            Эти задачи не учитываются в расчётах и не будут иметь Story Points в JIRA
+                        </div>
+                    </div>
+                )}
+
                 {/* T-shirt Size Formulas - Side by Side */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
@@ -235,6 +255,12 @@ export const EstimationSummary = ({
                         <span className="text-muted-foreground">Количество рабочих дней:</span>
                         <span className="font-medium">{workingDays}</span>
                     </div>
+                    {estimation.tasksWithoutEstimation > 0 && (
+                        <div className="flex justify-between items-center">
+                            <span className="text-muted-foreground">Задачи без оценки:</span>
+                            <span className="font-medium text-orange-600">{estimation.tasksWithoutEstimation}</span>
+                        </div>
+                    )}
                 </div>
             </CardContent>
         </Card>
