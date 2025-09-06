@@ -2,8 +2,6 @@ import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Eye, CheckCircle, ExternalLink } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -20,7 +18,6 @@ interface TaskCreationPanelProps {
         riskFormula: string;
     };
     additionalRiskPercent: number;
-    onAdditionalRiskChange: (percent: number) => void;
     blocks?: any[]; // DecompositionBlocks for task creation
     parentJiraKey?: string; // For linking created tasks
 }
@@ -29,7 +26,6 @@ export const TaskCreationPanel = ({
     sessionId,
     estimation,
     additionalRiskPercent,
-    onAdditionalRiskChange,
     blocks = [],
     parentJiraKey,
 }: TaskCreationPanelProps) => {
@@ -83,40 +79,7 @@ export const TaskCreationPanel = ({
         },
     });
 
-    const calculateAdditionalRisks = () => {
-        const additional = (estimation.baseEstimation * additionalRiskPercent) / 100;
-        return Math.round(additional * 2) / 2;
-    };
 
-    const calculateTotal = () => {
-        return estimation.baseEstimation + estimation.risks + calculateAdditionalRisks();
-    };
-
-    const calculateWorkingDays = () => {
-        return Math.ceil(calculateTotal() * 2);
-    };
-
-    const calculateDeliveryDate = () => {
-        const workingDays = calculateWorkingDays();
-        const currentDate = new Date();
-        let deliveryDate = new Date(currentDate);
-        let daysAdded = 0;
-
-        while (daysAdded < workingDays) {
-            deliveryDate.setDate(deliveryDate.getDate() + 1);
-            
-            // Skip weekends (Saturday = 6, Sunday = 0)
-            if (deliveryDate.getDay() !== 0 && deliveryDate.getDay() !== 6) {
-                daysAdded++;
-            }
-        }
-
-        return deliveryDate.toLocaleDateString('ru-RU', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-        });
-    };
 
     const handleCreateTasks = () => {
         createTasksMutation.mutate();
@@ -128,79 +91,37 @@ export const TaskCreationPanel = ({
                 <CardTitle className="text-lg font-semibold">Создание задач в JIRA</CardTitle>
             </CardHeader>
             <CardContent className="p-0 space-y-6">
-                {/* Additional Risks Configuration */}
-                <div 
-                    className="border border-border rounded-lg p-4"
-                    style={{ borderRadius: '12px' }}
-                >
-                    <h3 className="font-medium text-foreground mb-3">Дополнительные риски</h3>
-                    <div className="flex items-center space-x-4">
-                        <Label className="text-sm text-muted-foreground whitespace-nowrap">
-                            Процент от общей оценки:
-                        </Label>
-                        <Input
-                            type="number"
-                            className="w-20 text-center"
-                            value={additionalRiskPercent}
-                            min={0}
-                            max={100}
-                            onChange={(e) => onAdditionalRiskChange(parseInt(e.target.value) || 0)}
-                            data-testid="input-additional-risk-percent"
-                        />
-                        <span className="text-sm text-muted-foreground">%</span>
-                        <span className="text-sm font-medium text-foreground ml-4">
-                            = {calculateAdditionalRisks()} SP
-                        </span>
-                    </div>
-                </div>
-
-                {/* Delivery Date Estimation */}
-                <div 
-                    className="border border-border rounded-lg p-4 bg-muted/30"
-                    style={{ borderRadius: '12px' }}
-                >
-                    <h3 className="font-medium text-foreground mb-3">Расчет сроков поставки</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="text-sm">
-                            <span className="text-muted-foreground">Формула расчета:</span>
-                            <div 
-                                className="font-mono text-sm bg-background p-2 rounded mt-1"
-                                style={{ borderRadius: '8px' }}
-                            >
-                                1 SP = 2 рабочих дня
-                            </div>
-                        </div>
-                        <div className="text-sm">
-                            <span className="text-muted-foreground">Ориентировочная дата поставки:</span>
-                            <div 
-                                className="text-lg font-semibold text-primary mt-1"
-                                data-testid="estimated-delivery-date"
-                            >
-                                {calculateDeliveryDate()}
-                            </div>
-                        </div>
-                    </div>
-                </div>
 
                 {/* Action Buttons */}
                 <div className="flex flex-col sm:flex-row gap-3 pt-4">
                     <Button
-                        className="btn-custom flex-1 px-6 py-3"
+                        className="flex-1 px-6 py-3"
                         onClick={handleCreateTasks}
                         disabled={createTasksMutation.isPending}
+                        style={{
+                            backgroundColor: '#0070ff',
+                            color: 'white',
+                            height: '48px',
+                            borderRadius: '12px',
+                            fontSize: '16px'
+                        }}
                         data-testid="button-create-tasks"
                     >
-                        <Plus className="w-4 h-4" />
+                        <Plus className="w-4 h-4" style={{ marginRight: '10px' }} />
                         {createTasksMutation.isPending ? 'Создание...' : 'Завести задачи в JIRA'}
                     </Button>
                     <Button
                         variant="secondary"
                         className="px-6 py-3"
-                        style={{ borderRadius: '12px', height: '48px' }}
+                        style={{ 
+                            borderRadius: '12px', 
+                            height: '48px',
+                            fontSize: '16px'
+                        }}
                         disabled={createTasksMutation.isPending}
                         data-testid="button-preview-tasks"
                     >
-                        <Eye className="w-4 h-4" />
+                        <Eye className="w-4 h-4" style={{ marginRight: '10px' }} />
                         Предварительный просмотр
                     </Button>
                 </div>

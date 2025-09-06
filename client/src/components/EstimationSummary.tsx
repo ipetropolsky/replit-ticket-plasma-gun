@@ -1,4 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 interface EstimationSummaryProps {
     estimation: {
@@ -10,12 +12,14 @@ interface EstimationSummaryProps {
     } | null;
     mapping: Record<string, number>;
     additionalRiskPercent: number;
+    onAdditionalRiskChange: (percent: number) => void;
 }
 
 export const EstimationSummary = ({
     estimation,
     mapping,
     additionalRiskPercent,
+    onAdditionalRiskChange,
 }: EstimationSummaryProps) => {
     const calculateAdditionalRisks = () => {
         if (!estimation) return 0;
@@ -30,6 +34,28 @@ export const EstimationSummary = ({
 
     const calculateWorkingDays = () => {
         return Math.ceil(calculateTotal() * 2);
+    };
+
+    const calculateDeliveryDate = () => {
+        const workingDays = calculateWorkingDays();
+        const currentDate = new Date();
+        let deliveryDate = new Date(currentDate);
+        let daysAdded = 0;
+
+        while (daysAdded < workingDays) {
+            deliveryDate.setDate(deliveryDate.getDate() + 1);
+            
+            // Skip weekends (Saturday = 6, Sunday = 0)
+            if (deliveryDate.getDay() !== 0 && deliveryDate.getDay() !== 6) {
+                daysAdded++;
+            }
+        }
+
+        return deliveryDate.toLocaleDateString('ru-RU', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
     };
 
     if (!estimation) {
@@ -83,11 +109,61 @@ export const EstimationSummary = ({
                     </div>
                 )}
 
-                {/* Additional Risks */}
-                <div>
-                    <div className="text-sm text-muted-foreground mb-2">Дополнительные риски:</div>
-                    <div className="text-sm font-medium text-orange-600" data-testid="additional-risks">
-                        {additionalRisks} SP ({additionalRiskPercent}% от общей оценки)
+                {/* Additional Risks Configuration */}
+                <div 
+                    className="border border-border rounded-lg p-4"
+                    style={{ borderRadius: '12px' }}
+                >
+                    <h3 className="font-medium text-foreground mb-3">Дополнительные риски</h3>
+                    <div className="flex items-center space-x-4">
+                        <Label className="text-sm text-muted-foreground whitespace-nowrap">
+                            Процент от общей оценки:
+                        </Label>
+                        <Input
+                            type="number"
+                            className="w-20 text-center"
+                            value={additionalRiskPercent}
+                            min={0}
+                            max={100}
+                            onChange={(e) => onAdditionalRiskChange(parseInt(e.target.value) || 0)}
+                            style={{
+                                borderRadius: '12px',
+                                fontSize: '16px'
+                            }}
+                            data-testid="input-additional-risk-percent"
+                        />
+                        <span className="text-sm text-muted-foreground">%</span>
+                        <span className="text-sm font-medium text-foreground ml-4">
+                            = {additionalRisks} SP
+                        </span>
+                    </div>
+                </div>
+
+                {/* Delivery Date Estimation */}
+                <div 
+                    className="border border-border rounded-lg p-4 bg-muted/30"
+                    style={{ borderRadius: '12px' }}
+                >
+                    <h3 className="font-medium text-foreground mb-3">Расчет сроков поставки</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="text-sm">
+                            <span className="text-muted-foreground">Формула расчета:</span>
+                            <div 
+                                className="font-mono text-sm bg-background p-2 rounded mt-1"
+                                style={{ borderRadius: '8px' }}
+                            >
+                                1 SP = 2 рабочих дня
+                            </div>
+                        </div>
+                        <div className="text-sm">
+                            <span className="text-muted-foreground">Ориентировочная дата поставки:</span>
+                            <div 
+                                className="text-lg font-semibold text-primary mt-1"
+                                data-testid="estimated-delivery-date"
+                            >
+                                {calculateDeliveryDate()}
+                            </div>
+                        </div>
                     </div>
                 </div>
 
