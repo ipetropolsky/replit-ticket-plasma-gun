@@ -60,7 +60,7 @@ export const DecompositionDisplay = ({
     const repositoryCategories = {
         'Frontend': {
             repos: ['frontend', 'xhh', 'docs', 'magritte', 'bloko', 'front-packages'],
-            bg: 'bg-yellow-100',
+            bg: 'bg-yellow-200',
             text: 'text-yellow-900'
         },
         'Configs': {
@@ -156,8 +156,10 @@ export const DecompositionDisplay = ({
                         {blocks.map((block, index) => (
                             <div
                                 key={index}
-                                className={`border border-border rounded-lg p-4 ${
-                                    block.type === 'text' ? 'bg-gray-50' : 'bg-background'
+                                className={`rounded-lg p-4 ${
+                                    block.type === 'text' 
+                                        ? 'bg-white' 
+                                        : 'border border-border bg-background'
                                 }`}
                                 style={{ borderRadius: '12px' }}
                                 data-testid={`block-${block.type}-${index}`}
@@ -184,14 +186,9 @@ export const DecompositionDisplay = ({
                                                     )}
                                                 </>
                                             ) : (
-                                                <>
-                                                    <Badge className="text-xs bg-gray-100 text-gray-600 border-0">
-                                                        Текст
-                                                    </Badge>
-                                                    <span className="text-sm text-muted-foreground">
-                                                        Текстовый блок
-                                                    </span>
-                                                </>
+                                                <Badge className="text-xs bg-gray-100 text-gray-600 border-0">
+                                                    Текст
+                                                </Badge>
                                             )}
                                         </div>
 
