@@ -1,6 +1,14 @@
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Info } from 'lucide-react';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 interface EstimationSummaryProps {
     estimation: {
@@ -58,11 +66,16 @@ export const EstimationSummary = ({
             }
         }
 
-        return deliveryDate.toLocaleDateString('ru-RU', {
+        const dateString = deliveryDate.toLocaleDateString('ru-RU', {
             year: 'numeric',
             month: 'long',
             day: 'numeric'
         });
+        
+        const dayNames = ['ВС', 'ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ'];
+        const dayName = dayNames[deliveryDate.getDay()];
+        
+        return { dateString, dayName };
     };
 
     if (!estimation) {
@@ -189,48 +202,68 @@ export const EstimationSummary = ({
                     </div>
                 </div>
 
-                {/* Total */}
-                <div className="border-t border-border pt-4">
-                    <div className="text-center">
-                        <div className="text-sm text-muted-foreground">Итого с рисками</div>
-                        <div 
-                            className="text-3xl font-bold text-primary"
-                            data-testid="total-estimation"
-                        >
-                            {total} SP
-                        </div>
-                        <div className="text-sm text-muted-foreground mt-1">
-                            ≈ {workingDays} рабочих дней
-                        </div>
-                    </div>
-                </div>
-
-                {/* Delivery Date Estimation */}
-                <div 
-                    className="border border-border rounded-lg p-4 bg-muted/30"
-                    style={{ borderRadius: '12px' }}
-                >
-                    <h3 className="font-medium text-foreground mb-3">Расчет сроков поставки</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="text-sm">
-                            <span className="text-muted-foreground">Формула расчета:</span>
-                            <div 
-                                className="font-mono text-sm bg-background p-2 rounded mt-1"
-                                style={{ borderRadius: '8px' }}
-                            >
-                                (SP × 2) ÷ {parallelizationCoefficient} = {workingDays} дней
+                {/* Total and Delivery Date - Side by Side */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Total with Risks Card */}
+                    <Card className="border border-border">
+                        <CardHeader className="pb-3">
+                            <CardTitle className="text-base font-medium">Итого с рисками</CardTitle>
+                        </CardHeader>
+                        <CardContent className="pt-0">
+                            <div className="text-center">
+                                <div 
+                                    className="text-3xl font-bold text-primary"
+                                    data-testid="total-estimation"
+                                >
+                                    {total} SP
+                                </div>
+                                <div className="text-sm text-muted-foreground mt-1">
+                                    ≈ {workingDays} рабочих дней
+                                </div>
                             </div>
-                        </div>
-                        <div className="text-sm">
-                            <span className="text-muted-foreground">Ориентировочная дата поставки:</span>
-                            <div 
-                                className="text-lg font-semibold text-primary mt-1"
-                                data-testid="estimated-delivery-date"
-                            >
-                                {calculateDeliveryDate()}
+                        </CardContent>
+                    </Card>
+                    
+                    {/* Delivery Date Card */}
+                    <Card className="border border-border">
+                        <CardHeader className="pb-3">
+                            <CardTitle className="text-base font-medium flex items-center space-x-2">
+                                <span>Дата поставки</span>
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Info className="h-4 w-4 text-muted-foreground cursor-help" />
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <div className="font-mono text-sm">
+                                                (SP × 2) ÷ {parallelizationCoefficient} = {workingDays} дней
+                                            </div>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="pt-0">
+                            <div className="text-center">
+                                <div 
+                                    className="text-lg font-semibold text-primary"
+                                    data-testid="estimated-delivery-date"
+                                >
+                                    {(() => {
+                                        const { dateString, dayName } = calculateDeliveryDate();
+                                        return (
+                                            <>
+                                                {dateString}
+                                                <div className="text-sm text-muted-foreground font-normal mt-1">
+                                                    {dayName}
+                                                </div>
+                                            </>
+                                        );
+                                    })()}
+                                </div>
                             </div>
-                        </div>
-                    </div>
+                        </CardContent>
+                    </Card>
                 </div>
 
                 {/* Task Statistics */}
