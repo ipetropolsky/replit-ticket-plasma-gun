@@ -14,12 +14,25 @@ let jiraService: JiraService | null = null;
 let llmService: LLMService | null = null;
 let estimationService: EstimationService | null = null;
 
-function getServices() {
-    if (!jiraService) jiraService = new JiraService();
-    if (!llmService) llmService = new LLMService();
-    if (!estimationService) estimationService = new EstimationService();
+function getServices(options: { needJira?: boolean; needLLM?: boolean; needEstimation?: boolean } = {}) {
+    const services: any = {};
     
-    return { jiraService, llmService, estimationService };
+    if (options.needJira !== false) {
+        if (!jiraService) jiraService = new JiraService();
+        services.jiraService = jiraService;
+    }
+    
+    if (options.needLLM !== false) {
+        if (!llmService) llmService = new LLMService();
+        services.llmService = llmService;
+    }
+    
+    if (options.needEstimation !== false) {
+        if (!estimationService) estimationService = new EstimationService();
+        services.estimationService = estimationService;
+    }
+    
+    return services;
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -75,8 +88,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 });
             }
 
-            // Parse using LLM
-            const { llmService, estimationService } = getServices();
+            // Parse using LLM (no JIRA needed for text parsing)
+            const { llmService, estimationService } = getServices({ needJira: false });
             const blocks = await llmService.parseDecomposition(decompositionText);
 
             // Calculate estimations
