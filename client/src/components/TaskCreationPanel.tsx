@@ -185,8 +185,7 @@ export const TaskCreationPanel = ({
                 {/* Action Buttons */}
                 <div className="flex flex-col sm:flex-row gap-3 pt-4">
                     <Button
-                        className="flex-1 px-6 py-3"
-                        style={{ borderRadius: '12px', fontWeight: '600' }}
+                        className="btn-custom flex-1 px-6 py-3"
                         onClick={handleCreateTasks}
                         disabled={createTasksMutation.isPending}
                         data-testid="button-create-tasks"
@@ -197,7 +196,7 @@ export const TaskCreationPanel = ({
                     <Button
                         variant="secondary"
                         className="px-6 py-3"
-                        style={{ borderRadius: '12px' }}
+                        style={{ borderRadius: '12px', height: '48px' }}
                         disabled={createTasksMutation.isPending}
                         data-testid="button-preview-tasks"
                     >
