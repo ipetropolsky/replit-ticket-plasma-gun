@@ -248,33 +248,33 @@ export const EstimationSummary = ({
                 <div className="border-t border-border pt-4 text-base flex justify-end">
                     <div className="space-y-1">
                         <div className="flex items-center">
-                            <span className="text-muted-foreground w-48 text-right">Всего задач</span>
+                            <span className="text-muted-foreground min-w-max text-right">Всего задач</span>
                             <span>:</span>
                             <span className="font-medium ml-2">{estimation.taskCount}</span>
                         </div>
                         <div className="flex items-center">
-                            <span className="text-muted-foreground w-48 text-right">Базовая оценка</span>
+                            <span className="text-muted-foreground min-w-max text-right">Базовая оценка</span>
                             <span>:</span>
                             <span className="font-medium ml-2">{estimation.baseEstimation} SP</span>
                         </div>
                         <div className="flex items-center">
-                            <span className="text-muted-foreground w-48 text-right">Встроенные риски</span>
+                            <span className="text-muted-foreground min-w-max text-right">Встроенные риски</span>
                             <span>:</span>
                             <span className="font-medium ml-2">{estimation.risks} SP</span>
                         </div>
                         <div className="flex items-center">
-                            <span className="text-muted-foreground w-48 text-right">Дополнительные риски</span>
+                            <span className="text-muted-foreground min-w-max text-right">Дополнительные риски</span>
                             <span>:</span>
                             <span className="font-medium ml-2">{additionalRisks} SP</span>
                         </div>
                         <div className="flex items-center">
-                            <span className="text-muted-foreground w-48 text-right">Количество рабочих дней</span>
+                            <span className="text-muted-foreground min-w-max text-right">Количество рабочих дней</span>
                             <span>:</span>
                             <span className="font-medium ml-2">{workingDays}</span>
                         </div>
                         {estimation.tasksWithoutEstimation > 0 && (
                             <div className="flex items-center">
-                                <span className="text-orange-600 w-48 text-right">Задачи без оценки</span>
+                                <span className="text-orange-600 min-w-max text-right">Задачи без оценки</span>
                                 <span>:</span>
                                 <span className="font-medium text-orange-600 ml-2">{estimation.tasksWithoutEstimation}</span>
                             </div>
