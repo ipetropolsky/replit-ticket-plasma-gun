@@ -1,14 +1,14 @@
 import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import { Card, CardContent, CardHeader, CardTitle } from 'src/components/ui/card';
-import { Button } from 'src/components/ui/button';
-import { Input } from 'src/components/ui/input';
-import { Label } from 'src/components/ui/label';
-import { Badge } from 'src/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
 import { Plus, Eye, CheckCircle, ExternalLink } from 'lucide-react';
-import { useToast } from 'src/hooks/use-toast';
-import { api } from 'src/lib/api';
-import type { TaskCreationResponse } from 'shared/schema';
+import { useToast } from '@/hooks/use-toast';
+import { api } from '@/lib/api';
+import type { TaskCreationResponse } from '@shared/schema';
 
 interface TaskCreationPanelProps {
     sessionId: string;

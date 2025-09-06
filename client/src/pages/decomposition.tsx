@@ -1,15 +1,15 @@
 import { useState } from 'react';
-import TaskInputForm from 'src/components/TaskInputForm';
-import DecompositionDisplay from 'src/components/DecompositionDisplay';
-import EstimationSummary from 'src/components/EstimationSummary';
-import TaskCreationPanel from 'src/components/TaskCreationPanel';
-import { Card, CardContent, CardHeader, CardTitle } from 'src/components/ui/card';
-import { Badge } from 'src/components/ui/badge';
+import { TaskInputForm } from '@/components/TaskInputForm';
+import { DecompositionDisplay } from '@/components/DecompositionDisplay';
+import { EstimationSummary } from '@/components/EstimationSummary';
+import { TaskCreationPanel } from '@/components/TaskCreationPanel';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { ClipboardList } from 'lucide-react';
 import type { 
     JiraTask, 
     DecompositionBlock 
-} from 'shared/schema';
+} from '@shared/schema';
 
 interface EstimationData {
     baseEstimation: number;

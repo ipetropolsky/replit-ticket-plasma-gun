@@ -1,6 +1,5 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { storage } from "./storage";
 import { JiraService } from "./services/jira";
 import { LLMService } from "./services/llm";
 import { EstimationService } from "./services/estimation";
@@ -8,12 +7,22 @@ import {
     JiraTaskSchema, 
     CreateTaskRequestSchema,
     TaskCreationResponseSchema 
-} from "shared/schema";
+} from "../shared/schema";
+
+// Lazy initialization to avoid credential errors at startup
+let jiraService: JiraService | null = null;
+let llmService: LLMService | null = null;
+let estimationService: EstimationService | null = null;
+
+function getServices() {
+    if (!jiraService) jiraService = new JiraService();
+    if (!llmService) llmService = new LLMService();
+    if (!estimationService) estimationService = new EstimationService();
+    
+    return { jiraService, llmService, estimationService };
+}
 
 export async function registerRoutes(app: Express): Promise<Server> {
-    const jiraService = new JiraService();
-    const llmService = new LLMService();
-    const estimationService = new EstimationService();
 
     // Get JIRA task by key or URL
     app.post('/api/jira/task', async (req, res) => {
@@ -26,6 +35,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 });
             }
 
+            const { jiraService } = getServices();
             const jiraKey = JiraService.extractKeyFromUrl(input);
             const jiraTask = await jiraService.getIssue(jiraKey);
 

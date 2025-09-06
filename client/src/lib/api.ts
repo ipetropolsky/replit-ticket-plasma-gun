@@ -4,7 +4,7 @@ import type {
     DecompositionBlock, 
     CreateTaskRequest,
     TaskCreationResponse 
-} from 'shared/schema';
+} from '@shared/schema';
 
 interface FetchJiraTaskResponse {
     success: boolean;
