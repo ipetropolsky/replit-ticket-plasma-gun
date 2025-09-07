@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { TaskInputForm } from '@/components/TaskInputForm';
 import { DecompositionDisplay } from '@/components/DecompositionDisplay';
 import { EstimationSummary } from '@/components/EstimationSummary';
@@ -15,6 +15,9 @@ import type {
     JiraTask,
     DecompositionBlock
 } from '@shared/schema';
+import { useMutation } from '@tanstack/react-query';
+import { useToast } from '@/hooks/use-toast.ts';
+import { api } from '@/lib/api.ts';
 
 interface EstimationData {
     baseEstimation: number;
@@ -37,10 +40,38 @@ export const DecompositionPage = () => {
     const [parentJiraKey, setParentJiraKey] = useState<string>('');
     const [availableProviders, setAvailableProviders] = useState<Array<{ name: string; available: boolean }>>([]);
     const [selectedProvider, setSelectedProvider] = useState<string>('regexp');
-    const [parseFunction, setParseFunction] = useState<(() => void) | null>(null);
+    const jiraKey = currentTask?.key || parentJiraKey;
 
-    const handleSetParseFunction = (fn: () => void) => {
-        setParseFunction(() => fn);
+    const { toast } = useToast();
+
+    const parseMutation = useMutation({
+        mutationFn: (text: string) => api.parseDecomposition(text, jiraKey, selectedProvider),
+        onSuccess: (data) => {
+            if (data.success) {
+                handleParsingComplete(data.blocks, data.estimation, data.sessionId, data.mapping, data.availableProviders);
+                toast({
+                    title: 'Декомпозиция обработана',
+                    description: `Найдено ${data.blocks.filter(b => b.type === 'task').length} задач`,
+                });
+            }
+        },
+        onError: (error: any) => {
+            toast({
+                variant: 'destructive',
+                title: 'Ошибка парсинга',
+                description: error.message || 'Не удалось разобрать декомпозицию',
+            });
+        },
+    });
+
+    // Expose parsing function for manual triggering
+    const parseText = (text: string) => {
+        if (!text.trim()) {
+            console.warn('[DecompositionDisplay] No text to parse');
+            return;
+        }
+        console.log('[DecompositionDisplay] Manual parsing triggered');
+        parseMutation.mutate(text);
     };
 
     const handleTaskLoaded = (task: JiraTask, text: string) => {
@@ -66,6 +97,7 @@ export const DecompositionPage = () => {
         setBlocks([]);
         setEstimation(null);
         setSessionId('');
+        parseText(text);
     };
 
     const handleParsingComplete = (
@@ -124,18 +156,10 @@ export const DecompositionPage = () => {
                             currentTask={currentTask}
                             onRefresh={handleRefresh}
                             availableProviders={availableProviders}
-                            onParseRequested={parseFunction}
                         />
 
                         {decompositionText && (
-                            <DecompositionDisplay
-                                decompositionText={decompositionText}
-                                jiraKey={currentTask?.key || parentJiraKey}
-                                provider={selectedProvider}
-                                onParsingComplete={handleParsingComplete}
-                                onParsingFunctionReady={handleSetParseFunction}
-                                blocks={blocks}
-                            />
+                            <DecompositionDisplay blocks={blocks} parseMutation={parseMutation} />
                         )}
 
                         {blocks.length > 0 && estimation && (
