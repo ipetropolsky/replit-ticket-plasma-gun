@@ -10,7 +10,10 @@ export const JiraTaskSchema = z.object({
         customfield_36836: z.string().nullable().optional(), // Декомпозиция
         customfield_24213: z.string().nullable().optional(), // Ссылки на макеты
         customfield_23613: z.string().nullable().optional(), // Оценка в майках PORTFOLIO
-        customfield_23911: z.string().nullable().optional(), // Оценка в майках HH
+        customfield_23911: z.union([
+            z.string(),
+            z.object({ id: z.string() })
+        ]).nullable().optional(), // Оценка в майках HH
         customfield_11212: z.number().nullable().optional(), // Story Points
         project: z.object({
             key: z.string(),

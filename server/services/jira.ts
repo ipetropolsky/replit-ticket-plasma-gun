@@ -27,6 +27,18 @@ interface TaskForCreation {
 
 export class JiraService {
     private config: JiraConfig;
+    
+    // Mapping JIRA estimation values to their IDs
+    private estimationMapping: Record<string, string> = {
+        "0": "25280",
+        "XS": "25281",
+        "S": "25282",
+        "S+": "43622",
+        "M": "25283",
+        "L": "25284",
+        "XL": "25285",
+        "XXL": "25286"
+    };
 
     constructor() {
         this.config = {
@@ -122,8 +134,13 @@ export class JiraService {
 
         // Add custom fields if provided
         if (taskData.estimation) {
-            payload.fields.customfield_23911 = taskData.estimation;
-            console.log(`[JIRA] Adding estimation: ${taskData.estimation}`);
+            const estimationId = this.estimationMapping[taskData.estimation];
+            if (estimationId) {
+                payload.fields.customfield_23911 = { id: estimationId };
+                console.log(`[JIRA] Adding estimation: ${taskData.estimation} (ID: ${estimationId})`);
+            } else {
+                console.warn(`[JIRA] Unknown estimation value: ${taskData.estimation}`);
+            }
         }
         if (taskData.storyPoints !== undefined) {
             payload.fields.customfield_11212 = taskData.storyPoints;
@@ -149,7 +166,7 @@ export class JiraService {
         });
 
         const issueUpdates = tasks.map((taskData) => {
-            const fields: Partial<JiraTask['fields']> = {
+            const fields: any = {
                 project: { key: 'HH' },
                 issuetype: { id: '3' }, // Task type
                 summary: taskData.summary,
@@ -158,7 +175,12 @@ export class JiraService {
 
             // Add custom fields if provided
             if (taskData.estimation) {
-                fields.customfield_23911 = taskData.estimation;
+                const estimationId = this.estimationMapping[taskData.estimation];
+                if (estimationId) {
+                    fields.customfield_23911 = { id: estimationId };
+                } else {
+                    console.warn(`[JIRA] Unknown estimation value: ${taskData.estimation}`);
+                }
             }
             if (taskData.storyPoints !== undefined) {
                 fields.customfield_11212 = taskData.storyPoints;
