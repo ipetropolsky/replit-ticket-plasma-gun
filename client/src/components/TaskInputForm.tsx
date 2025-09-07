@@ -23,6 +23,7 @@ interface TaskInputFormProps {
     currentTask: JiraTask | null;
     onRefresh: () => void;
     availableProviders?: ProviderInfo[];
+    onParseRequested?: (() => void) | null;
 }
 
 export const TaskInputForm = ({ 
@@ -30,7 +31,8 @@ export const TaskInputForm = ({
     onTextProvided,
     currentTask, 
     onRefresh,
-    availableProviders 
+    availableProviders,
+    onParseRequested
 }: TaskInputFormProps) => {
     const [jiraInput, setJiraInput] = useState('');
     const [textInput, setTextInput] = useState('');
@@ -94,6 +96,14 @@ export const TaskInputForm = ({
             return;
         }
         onTextProvided(textInput.trim(), jiraInput.trim() || undefined, selectedProvider);
+        
+        // Trigger parsing if function is available
+        if (onParseRequested) {
+            // Small delay to let state update
+            setTimeout(() => {
+                onParseRequested();
+            }, 100);
+        }
     };
 
     const handleProviderChange = (provider: LLMProvider) => {

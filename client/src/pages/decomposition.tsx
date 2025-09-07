@@ -37,6 +37,7 @@ export const DecompositionPage = () => {
     const [parentJiraKey, setParentJiraKey] = useState<string>('');
     const [availableProviders, setAvailableProviders] = useState<Array<{ name: string; available: boolean }>>([]);
     const [selectedProvider, setSelectedProvider] = useState<string>('regexp');
+    const [parseFunction, setParseFunction] = useState<(() => void) | null>(null);
 
     const handleTaskLoaded = (task: JiraTask, text: string) => {
         console.log('[DecompositionPage] Task loaded:', {
@@ -125,6 +126,7 @@ export const DecompositionPage = () => {
                             currentTask={currentTask}
                             onRefresh={handleRefresh}
                             availableProviders={availableProviders}
+                            onParseRequested={parseFunction}
                         />
 
                         {decompositionText && (
@@ -133,6 +135,7 @@ export const DecompositionPage = () => {
                                 jiraKey={currentTask?.key || parentJiraKey}
                                 provider={selectedProvider}
                                 onParsingComplete={handleParsingComplete}
+                                onParsingFunctionReady={setParseFunction}
                                 blocks={blocks}
                             />
                         )}

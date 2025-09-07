@@ -18,6 +18,7 @@ interface DecompositionDisplayProps {
         mapping: Record<string, number>,
         availableProviders?: Array<{ name: string; available: boolean }>
     ) => void;
+    onParsingFunctionReady: (parseFn: () => void) => void;
     blocks: DecompositionBlock[];
 }
 
@@ -26,6 +27,7 @@ export const DecompositionDisplay = ({
     jiraKey,
     provider,
     onParsingComplete,
+    onParsingFunctionReady,
     blocks,
 }: DecompositionDisplayProps) => {
     const { toast } = useToast();
@@ -50,18 +52,20 @@ export const DecompositionDisplay = ({
         },
     });
 
-    useEffect(() => {
-        console.log('[DecompositionDisplay] useEffect triggered:', {
-            decompositionText: decompositionText ? `${decompositionText.length} chars` : 'empty',
-            blocksLength: blocks.length,
-            willParse: !!(decompositionText && blocks.length === 0)
-        });
-        
-        if (decompositionText && blocks.length === 0) {
-            console.log('[DecompositionDisplay] Starting parsing...');
-            parseMutation.mutate();
+    // Expose parsing function for manual triggering
+    const triggerParsing = () => {
+        if (!decompositionText.trim()) {
+            console.warn('[DecompositionDisplay] No text to parse');
+            return;
         }
-    }, [decompositionText, blocks.length]);
+        console.log('[DecompositionDisplay] Manual parsing triggered');
+        parseMutation.mutate();
+    };
+
+    // Pass parsing function to parent when ready
+    useEffect(() => {
+        onParsingFunctionReady(triggerParsing);
+    }, [decompositionText, provider]);
 
     // Repository to category mapping
     const repositoryCategories = {
