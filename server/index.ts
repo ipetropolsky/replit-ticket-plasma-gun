@@ -30,7 +30,7 @@ app.use((req, res, next) => {
 
       if (app.get("env") === "development") {
         // Dynamic import log function only in development
-        import("./vite").then(({ log }) => {
+        import("./vite-loader").then(({ log }) => {
           log(logLine);
         });
       } else {
@@ -57,10 +57,10 @@ app.use((req, res, next) => {
   // setting up all the other routes so the catch-all route
   // doesn't interfere with the other routes
   if (app.get("env") === "development") {
-    const { setupVite, log } = await import("./vite");
+    const { setupVite } = await import("./vite-loader");
     await setupVite(app, server);
   } else {
-    const { serveStatic } = await import("./vite");
+    const { serveStatic } = await import("./vite-loader");
     serveStatic(app);
   }
 
@@ -74,6 +74,6 @@ app.use((req, res, next) => {
     host: "0.0.0.0",
     reusePort: true,
   }, () => {
-    log(`serving on port ${port}`);
+    console.log(`serving on port ${port}`);
   });
 })();
