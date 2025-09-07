@@ -8,6 +8,7 @@ vite.config.ts.*
 # Environment and local files
 .env
 .local
+.claude
 
 # Assets
 attached_assets/
