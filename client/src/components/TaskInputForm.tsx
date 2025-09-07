@@ -26,10 +26,10 @@ interface TaskInputFormProps {
     onParseRequested?: (() => void) | null;
 }
 
-export const TaskInputForm = ({ 
-    onTaskLoaded, 
+export const TaskInputForm = ({
+    onTaskLoaded,
     onTextProvided,
-    currentTask, 
+    currentTask,
     onRefresh,
     availableProviders,
     onParseRequested
@@ -96,7 +96,7 @@ export const TaskInputForm = ({
             return;
         }
         onTextProvided(textInput.trim(), jiraInput.trim() || undefined, selectedProvider);
-        
+
         // Trigger parsing if function is available
         if (onParseRequested) {
             // Small delay to let state update
@@ -123,7 +123,7 @@ export const TaskInputForm = ({
         <Card style={{ borderRadius: '24px', padding: '24px' }}>
             <CardHeader className="p-0 mb-6">
                 <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg font-semibold">
+                    <CardTitle className="text-lg leading-8 font-semibold">
                         Источник декомпозиции
                     </CardTitle>
                     {currentTask && (
@@ -155,8 +155,8 @@ export const TaskInputForm = ({
                             onChange={(e) => setJiraInput(e.target.value)}
                             placeholder="PORTFOLIO-12345 или ссылка на JIRA"
                             className="flex-1"
-                            style={{ 
-                                height: '48px', 
+                            style={{
+                                height: '48px',
                                 borderRadius: '12px',
                                 fontSize: '16px'
                             }}
@@ -191,7 +191,7 @@ export const TaskInputForm = ({
                 {/* Text Input Section */}
                 <div className="space-y-3">
                     <Label htmlFor="text-input">Текст декомпозиции</Label>
-                    
+
                     <Textarea
                         id="text-input"
                         value={textInput}
@@ -203,12 +203,12 @@ export const TaskInputForm = ({
                             fontSize: '16px'
                         }}
                     />
-                    
+
                     {/* Help Text */}
-                    <div className="text-sm text-muted-foreground">
-                        Только выделим задачи из текста. Создание задач в JIRA — на следующем шаге.
+                    <div className="text-sm text-right text-muted-foreground">
+                        Создание задач в JIRA — на следующем шаге
                     </div>
-                    
+
                     {/* Provider Selection and Submit Button */}
                     <div className="flex items-center justify-between gap-4">
                         {/* Provider Selection */}
@@ -219,7 +219,7 @@ export const TaskInputForm = ({
                                     const providerTyped = provider as LLMProvider;
                                     const isAvailable = availableProviders?.find(p => p.name === provider)?.available ?? (provider === 'regexp');
                                     const isSelected = selectedProvider === provider;
-                                    
+
                                     return (
                                         <Button
                                             key={provider}
@@ -248,7 +248,7 @@ export const TaskInputForm = ({
                                 })}
                             </div>
                         </div>
-                        
+
                         {/* Submit Button */}
                         <Button
                             onClick={handleTextSubmit}
@@ -266,7 +266,6 @@ export const TaskInputForm = ({
                             Разбить на задачи
                         </Button>
                     </div>
-                    
                 </div>
 
                 {/* Current Task Display */}
@@ -275,9 +274,9 @@ export const TaskInputForm = ({
                         <div className="flex items-center gap-3">
                             <Link className="h-4 w-4 text-muted-foreground" />
                             <div>
-                                <div className="font-medium">{currentTask.key}: {currentTask.summary}</div>
+                                <div className="font-medium">{currentTask.key}: {currentTask.fields.summary || 'Неизвестно'}</div>
                                 <div className="text-sm text-muted-foreground">
-                                    Статус: {currentTask.status} • Исполнитель: {currentTask.assignee || 'Не назначен'}
+                                    {currentTask.fields.assignee?.displayName || 'Исполнитель неизвестен'} • {currentTask.fields.status?.name || 'Статус неизвестен'}
                                 </div>
                             </div>
                         </div>
