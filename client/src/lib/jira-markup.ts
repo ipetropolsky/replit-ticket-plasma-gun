@@ -2,6 +2,8 @@
  * Utilities for handling JIRA markup
  */
 
+import * as j2m from 'jira2md';
+
 /**
  * Removes JIRA markup from text, leaving plain text
  * Handles: h1-h6 headers, *bold*, _italic_, -strikethrough-, lists, etc.
@@ -33,27 +35,22 @@ export function stripJiraMarkup(text: string): string {
 }
 
 /**
- * Converts JIRA markup to basic HTML for display
- * Handles common JIRA syntax with HTML equivalents
+ * Converts JIRA markup to HTML using jira2md library
+ * Properly handles lists, headers, formatting, and other JIRA syntax
  */
 export function jiraMarkupToHtml(text: string): string {
   if (!text) return '';
   
-  return text
-    // Headers
-    .replace(/^h([1-6])\.\s*(.+)$/gm, '<h$1>$2</h$1>')
-    // Bold, italic, underline, strikethrough
-    .replace(/\*([^*]+)\*/g, '<strong>$1</strong>')
-    .replace(/_([^_]+)_/g, '<em>$1</em>')
-    .replace(/\+([^+]+)\+/g, '<u>$1</u>')
-    .replace(/-([^-]+)-/g, '<del>$1</del>')
-    // Lists (простые)
-    .replace(/^[\*\-]\s+(.+)$/gm, '<li>$1</li>')
-    .replace(/^#\s+(.+)$/gm, '<li>$1</li>')
-    // Links [text|url] -> <a href="url">text</a>
-    .replace(/\[([^\|\]]+)\|([^\]]+)\]/g, '<a href="$2" target="_blank">$1</a>')
-    // Code inline
-    .replace(/\{\{([^}]+)\}\}/g, '<code>$1</code>')
-    // Line breaks
-    .replace(/\n/g, '<br/>');
+  try {
+    // Use jira2md to convert JIRA markup to HTML
+    return j2m.to_html(text);
+  } catch (error) {
+    console.warn('Failed to convert JIRA markup to HTML:', error);
+    // Fallback: just escape HTML and preserve line breaks
+    return text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/\n/g, '<br/>');
+  }
 }
