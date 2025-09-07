@@ -88,13 +88,12 @@ export const TaskCreationPanel = ({
 
     return (
         <Card style={{ borderRadius: '24px', padding: '24px' }}>
-            <CardHeader className="p-0 mb-6">
+            <CardHeader className="p-0 mb-4">
                 <CardTitle className="text-lg font-semibold">Создание задач в JIRA</CardTitle>
             </CardHeader>
             <CardContent className="p-0 space-y-6">
-
                 {/* Action Buttons */}
-                <div className="flex flex-col sm:flex-row gap-3 pt-4">
+                <div className="flex flex-col sm:flex-row gap-3">
                     <Button
                         className="flex-1 px-6 py-3"
                         onClick={handleCreateTasks}
