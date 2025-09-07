@@ -67,7 +67,7 @@ export const DecompositionDisplay = ({
         onParsingFunctionReady(triggerParsing);
     }, [decompositionText, provider]);
 
-    // Repository to category mapping
+    // Repository to category mapping - теперь можно выносить в конфигурацию
     const repositoryCategories = {
         'Frontend': {
             repos: ['frontend', 'xhh', 'docs', 'magritte', 'bloko', 'front-packages'],
@@ -127,39 +127,38 @@ export const DecompositionDisplay = ({
         }
     };
 
+    // Показываем блок только если идет парсинг или есть результаты
+    if (!parseMutation.isPending && blocks.length === 0) {
+        return null;
+    }
+
     return (
         <Card style={{ borderRadius: '24px', padding: '24px' }}>
             <CardHeader className="p-0 mb-4">
-                <CardTitle className="text-lg font-semibold">
-                    Результат анализа декомпозиции
-                </CardTitle>
+                <div className="flex items-center justify-between">
+                    <CardTitle className="text-lg font-semibold">
+                        Результат анализа декомпозиции
+                    </CardTitle>
+                    {!parseMutation.isPending && blocks.length > 0 && (
+                        <Badge className="bg-green-100 text-green-800">
+                            Завершено
+                        </Badge>
+                    )}
+                </div>
             </CardHeader>
             <CardContent className="p-0 space-y-4">
-                {/* Parsing Status */}
-                <div 
-                    className="flex items-center justify-between p-4 bg-muted/30 rounded-lg"
-                    style={{ borderRadius: '12px' }}
-                >
-                    <div className="flex items-center space-x-3">
-                        {parseMutation.isPending ? (
-                            <Loader2 className="w-5 h-5 animate-spin text-primary" />
-                        ) : (
-                            <CheckCircle className="w-5 h-5 text-green-500" />
-                        )}
+                {/* Processing indicator */}
+                {parseMutation.isPending && (
+                    <div 
+                        className="flex items-center p-4 bg-muted/30 rounded-lg"
+                        style={{ borderRadius: '12px' }}
+                    >
+                        <Loader2 className="w-5 h-5 animate-spin text-primary mr-3" />
                         <span className="text-sm font-medium">
-                            {parseMutation.isPending 
-                                ? 'Обработка текста декомпозиции с помощью LLM'
-                                : 'Обработка завершена'
-                            }
+                            Обработка текста декомпозиции с помощью LLM
                         </span>
                     </div>
-                    <Badge 
-                        variant={parseMutation.isPending ? 'secondary' : 'default'}
-                        className={parseMutation.isPending ? 'bg-orange-100 text-orange-800' : 'bg-green-100 text-green-800'}
-                    >
-                        {parseMutation.isPending ? 'В процессе' : 'Завершено'}
-                    </Badge>
-                </div>
+                )}
 
                 {/* Parsed Blocks */}
                 {blocks.length > 0 && (

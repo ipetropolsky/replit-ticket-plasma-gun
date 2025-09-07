@@ -1,0 +1,22 @@
+{
+  "Frontend": {
+    "repos": ["frontend", "xhh", "docs", "magritte", "bloko", "front-packages"],
+    "bg": "bg-yellow-200",
+    "text": "text-yellow-900"
+  },
+  "Configs": {
+    "repos": ["configs", "deploy", "deploy-dev-secure"],
+    "bg": "bg-green-100",
+    "text": "text-green-800"
+  },
+  "DB": {
+    "repos": ["db", "dbscripts"],
+    "bg": "bg-purple-100",
+    "text": "text-purple-800"
+  },
+  "Backend": {
+    "repos": ["backend", "hh.ru", "hhru", "xmlback", "billing", "billing-price", "mm", "monetization-manager", "vacancy-creation", "vc"],
+    "bg": "bg-blue-500",
+    "text": "text-white"
+  }
+}
