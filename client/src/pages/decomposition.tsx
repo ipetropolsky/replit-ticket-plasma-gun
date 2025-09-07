@@ -11,9 +11,9 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import type { 
-    JiraTask, 
-    DecompositionBlock 
+import type {
+    JiraTask,
+    DecompositionBlock
 } from '@shared/schema';
 
 interface EstimationData {
@@ -45,12 +45,12 @@ export const DecompositionPage = () => {
             textLength: text.length,
             currentBlocksLength: blocks.length
         });
-        
+
         // Reset parsing results FIRST
         setBlocks([]);
         setEstimation(null);
         setSessionId('');
-        
+
         // Then set new data
         setCurrentTask(task);
         setDecompositionText(text);
@@ -102,8 +102,8 @@ export const DecompositionPage = () => {
                 <div className="max-w-7xl mx-auto px-6 py-4">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-4">
-                            <img 
-                                src="https://i.hh.ru/styles/images/logos/hh.ru__min_.svg?v=23122024" 
+                            <img
+                                src="https://i.hh.ru/styles/images/logos/hh.ru__min_.svg?v=23122024"
                                 alt="HH.ru"
                                 className="h-12"
                             />
@@ -120,7 +120,7 @@ export const DecompositionPage = () => {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     {/* Main Content */}
                     <div className="lg:col-span-2 space-y-6">
-                        <TaskInputForm 
+                        <TaskInputForm
                             onTaskLoaded={handleTaskLoaded}
                             onTextProvided={handleTextProvided}
                             currentTask={currentTask}
@@ -199,7 +199,7 @@ export const DecompositionPage = () => {
                                     <div className="space-y-1">
                                         {/* JIRA Status */}
                                         <div className="text-sm text-muted-foreground">
-                                            JIRA API: 
+                                            JIRA API:{' '}
                                             <TooltipProvider>
                                                 <Tooltip>
                                                     <TooltipTrigger asChild>
@@ -216,7 +216,7 @@ export const DecompositionPage = () => {
                                         </div>
                                         {/* OpenAI Status */}
                                         <div className="text-sm text-muted-foreground">
-                                            OpenAI API: 
+                                            OpenAI API:{' '}
                                             <TooltipProvider>
                                                 <Tooltip>
                                                     <TooltipTrigger asChild>
@@ -233,7 +233,7 @@ export const DecompositionPage = () => {
                                         </div>
                                         {/* Anthropic Status */}
                                         <div className="text-sm text-muted-foreground">
-                                            Anthropic API: 
+                                            Anthropic API:{' '}
                                             <TooltipProvider>
                                                 <Tooltip>
                                                     <TooltipTrigger asChild>
