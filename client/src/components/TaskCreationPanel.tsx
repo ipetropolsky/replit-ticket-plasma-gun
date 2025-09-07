@@ -37,14 +37,21 @@ export const TaskCreationPanel = ({
     const createTasksMutation = useMutation({
         mutationFn: () => {
             // Extract tasks from blocks
-            const tasks = blocks.filter(block => block.type === 'task' && block.taskInfo).map(block => ({
-                title: block.taskInfo.title,
-                summary: `${block.taskInfo.repository ? `[${block.taskInfo.repository}] ` : ''}${block.taskInfo.title}`,
-                content: block.content,
-                description: block.content,
-                estimation: block.taskInfo.estimation,
-                storyPoints: block.taskInfo.estimationSP
-            }));
+            const tasks = blocks
+                .filter(block => 
+                    block.type === 'task' && 
+                    block.taskInfo && 
+                    block.taskInfo.estimation && 
+                    block.taskInfo.estimationSP !== null
+                )
+                .map(block => ({
+                    title: block.taskInfo!.title,
+                    summary: `${block.taskInfo!.repository ? `[${block.taskInfo!.repository}] ` : ''}${block.taskInfo!.title}`,
+                    content: block.content,
+                    description: block.content,
+                    estimation: block.taskInfo!.estimation!,
+                    storyPoints: block.taskInfo!.estimationSP!
+                }));
             
             return api.createTasks({ 
                 sessionId, 
