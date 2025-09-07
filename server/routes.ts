@@ -55,15 +55,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
             // Validate the response
             const validatedTask = JiraTaskSchema.parse(jiraTask);
 
-            // Check if decomposition field exists
-            if (!validatedTask.fields.customfield_36836) {
-                return res.status(400).json({
-                    code: 'MISSING_DECOMPOSITION',
-                    message: 'Поле "Декомпозиция" (customfield_36836) не заполнено в задаче. Пожалуйста, заполните это поле для продолжения.',
-                    example: 'Пример заполнения:\n\nh2. Общее описание\nОписание задачи...\n\nh2. M [repo] Название подзадачи\n- Требование 1\n- Требование 2'
-                });
-            }
-
             // Нормализуем текст декомпозиции: убираем %0D и другие проблемные символы
             const rawText = validatedTask.fields.customfield_36836 || '';
             const normalizedText = rawText

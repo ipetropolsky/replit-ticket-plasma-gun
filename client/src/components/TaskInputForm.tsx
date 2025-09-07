@@ -45,7 +45,7 @@ export const TaskInputForm = ({
                 setTextInput(data.decompositionText); // Заполняем textarea
                 toast({
                     title: 'Задача загружена',
-                    description: `Успешно загружена задача ${data.task.key}`,
+                    description: `Успешно загружена задача ${data.task.key}${data.decompositionText ? '' : ', но поле «Декомпозиция» пусто 🧐'}`,
                 });
             }
         },
