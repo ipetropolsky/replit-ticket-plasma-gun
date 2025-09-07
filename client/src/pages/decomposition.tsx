@@ -40,17 +40,10 @@ export const DecompositionPage = () => {
     const [parseFunction, setParseFunction] = useState<(() => void) | null>(null);
 
     const handleSetParseFunction = (fn: () => void) => {
-        console.log('[DecompositionPage] Setting parse function (should NOT auto-trigger)');
         setParseFunction(() => fn);
     };
 
     const handleTaskLoaded = (task: JiraTask, text: string) => {
-        console.log('[DecompositionPage] Task loaded - NO AUTO PARSING:', {
-            taskKey: task.key,
-            textLength: text.length,
-            currentBlocksLength: blocks.length
-        });
-
         // Reset parsing results FIRST
         setBlocks([]);
         setEstimation(null);

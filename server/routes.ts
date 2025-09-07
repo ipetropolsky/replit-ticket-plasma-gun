@@ -63,10 +63,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 });
             }
 
+            // Нормализуем текст декомпозиции: убираем %0D и другие проблемные символы
+            const rawText = validatedTask.fields.customfield_36836 || '';
+            const normalizedText = rawText
+                .replace(/%0D/g, '') // Убираем URL-encoded \r
+                .replace(/\r\n/g, '\n') // Windows line endings → Unix
+                .replace(/\r/g, '\n') // Lone \r → \n
+                .replace(/&nbsp;/g, ' ') // HTML entities → пробелы
+                .replace(/&lt;/g, '<')
+                .replace(/&gt;/g, '>')
+                .replace(/&amp;/g, '&')
+                .trim();
+
+            console.log('[JIRA] Text normalization:', {
+                originalLength: rawText.length,
+                normalizedLength: normalizedText.length,
+                hasPercent0D: rawText.includes('%0D'),
+                hasCarriageReturn: rawText.includes('\r')
+            });
+
             res.json({
                 success: true,
                 task: validatedTask,
-                decompositionText: validatedTask.fields.customfield_36836
+                decompositionText: normalizedText
             });
 
         } catch (error: any) {
