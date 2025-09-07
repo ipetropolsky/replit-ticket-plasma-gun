@@ -42,30 +42,54 @@ export function stripJiraMarkup(text: string): string {
 export function jiraMarkupToHtml(text: string): string {
   if (!text) return '';
   
-  try {
-    // Use jira2md to convert JIRA markup to HTML
-    return j2m.jira_to_html(text);
-  } catch (error) {
-    console.warn('Failed to convert JIRA markup to HTML:', error);
-    // Improved fallback with basic JIRA markup support
-    return text
-      // Headers
-      .replace(/^h([1-6])\.\s*(.+)$/gm, '<h$1>$2</h$1>')
-      // Bold, italic, underline, strikethrough
-      .replace(/\*([^*]+)\*/g, '<strong>$1</strong>')
-      .replace(/_([^_]+)_/g, '<em>$1</em>')
-      .replace(/\+([^+]+)\+/g, '<u>$1</u>')
-      .replace(/--([^-]+)--/g, '<del>$1</del>')  // JIRA uses double dash, not single
-      // Simple lists - wrap consecutive list items
-      .replace(/((?:^[\*\-]\s+.+(?:\n|$))+)/gm, '<ul>$1</ul>')
-      .replace(/^[\*\-]\s+(.+)$/gm, '<li>$1</li>')
-      .replace(/((?:^#\s+.+(?:\n|$))+)/gm, '<ol>$1</ol>')
-      .replace(/^#\s+(.+)$/gm, '<li>$1</li>')
-      // Links [text|url] -> <a href="url">text</a>
-      .replace(/\[([^\|\]]+)\|([^\]]+)\]/g, '<a href="$2" target="_blank">$1</a>')
-      // Code inline
-      .replace(/\{\{([^}]+)\}\}/g, '<code>$1</code>')
-      // Line breaks
-      .replace(/\n/g, '<br/>');
-  }
+  // Более надёжная обработка JIRA разметки с поддержкой вложенных списков
+  return text
+    // Headers
+    .replace(/^h([1-6])\.\s*(.+)$/gm, '<h$1>$2</h$1>')
+    
+    // Bold, italic, underline, strikethrough  
+    .replace(/\*([^*\n]+)\*/g, '<strong>$1</strong>')
+    .replace(/_([^_\n]+)_/g, '<em>$1</em>')
+    .replace(/\+([^+\n]+)\+/g, '<u>$1</u>')
+    .replace(/--([^-\n]+)--/g, '<del>$1</del>')
+    
+    // Code inline - обрабатываем раньше списков, чтобы не конфликтовать
+    .replace(/\{\{([^}]+)\}\}/g, '<code>$1</code>')
+    
+    // Links - также обрабатываем раньше
+    .replace(/\[([^\|\]]+)\|([^\]]+)\]/g, '<a href="$2" target="_blank">$1</a>')
+    
+    // Обрабатываем списки построчно с поддержкой вложенности
+    .split('\n')
+    .map(line => {
+      // Основные пункты списка
+      if (line.match(/^-\s+/)) {
+        return `<li class="main-item">${line.replace(/^-\s+/, '')}</li>`;
+      }
+      // Подпункты (двойной дефис)  
+      else if (line.match(/^--\s+/)) {
+        return `<li class="sub-item" style="margin-left: 20px; list-style-type: circle;">${line.replace(/^--\s+/, '')}</li>`;
+      }
+      // Нумерованные списки
+      else if (line.match(/^#\s+/)) {
+        return `<li class="numbered">${line.replace(/^#\s+/, '')}</li>`;
+      }
+      // Обычные строки
+      else {
+        return line;
+      }
+    })
+    .join('\n')
+    
+    // Группируем соседние элементы списка в ul
+    .replace(/((?:<li class="main-item">.*?<\/li>\n?(?:<li class="sub-item"[^>]*>.*?<\/li>\n?)*)+)/g, '<ul>$1</ul>')
+    
+    // Группируем нумерованные списки
+    .replace(/((?:<li class="numbered">.*?<\/li>\n?)+)/g, '<ol>$1</ol>')
+    
+    // Убираем классы после группировки
+    .replace(/<li class="[^"]*"([^>]*)>/g, '<li$1>')
+    
+    // Line breaks для обычных строк (не внутри списков)
+    .replace(/\n(?![^<]*<\/li>)/g, '<br/>');
 }

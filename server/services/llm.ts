@@ -249,8 +249,8 @@ Respond with JSON in this format:
                 // Parse estimation and risk
                 const { estimation, risk, estimationSP, riskSP } = this.parseEstimation(rawEstimation);
 
-                // Collect task content including description lines
-                let taskContent = line;
+                // Collect task content - только описание без названия задачи
+                let taskContent = '';
                 let j = i + 1;
 
                 // Include subsequent lines until next task or heading of same/higher level
@@ -275,7 +275,12 @@ Respond with JSON in this format:
                         }
                     }
 
-                    taskContent += '\n' + nextLine;
+                    // Добавляем строку к описанию
+                    if (taskContent) {
+                        taskContent += '\n' + nextLine;
+                    } else {
+                        taskContent = nextLine; // Первая строка описания
+                    }
                     j++;
                 }
 
