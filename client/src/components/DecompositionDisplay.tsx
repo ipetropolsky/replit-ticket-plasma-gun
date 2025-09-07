@@ -3,7 +3,7 @@ import { Badge } from 'src/components/ui/badge';
 import { Loader2 } from 'lucide-react';
 import type { DecompositionBlock } from 'shared/schema';
 import { UseMutationResult } from '@tanstack/react-query';
-import { stripJiraMarkup, jiraMarkupToHtml } from '../lib/jira-markup';
+import { stripJiraMarkup } from '../lib/jira-markup';
 
 interface DecompositionDisplayProps {
     blocks: DecompositionBlock[];
@@ -195,10 +195,8 @@ export const DecompositionDisplay = ({
                                             </div>
                                         )}
 
-                                        <div className="text-sm text-foreground">
-                                            <div dangerouslySetInnerHTML={{ 
-                                                __html: jiraMarkupToHtml(block.content) 
-                                            }} />
+                                        <div className="text-sm text-foreground whitespace-pre-wrap">
+                                            {block.content}
                                         </div>
                                     </div>
                                 </div>

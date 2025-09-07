@@ -35,6 +35,7 @@ export const TaskInputForm = ({
     const [textInput, setTextInput] = useState('');
     const [selectedProvider, setSelectedProvider] = useState<LLMProvider>('regexp');
     const { toast } = useToast();
+    const currentTaskUrl = currentTask ? `https://jira.hh.ru/browse/${currentTask.key}` : null;
 
     const fetchTaskMutation = useMutation({
         mutationFn: (input: string) => api.fetchJiraTask(input),
@@ -258,20 +259,19 @@ export const TaskInputForm = ({
                 </div>
 
                 {/* Current Task Display */}
-                {currentTask && (
+                {currentTask && currentTaskUrl && (
                     <div className="pt-4 border-t border-border">
                         <div className="flex items-center gap-3">
-                            <Link className="h-4 w-4 text-muted-foreground" />
+                            <a
+                                href={currentTaskUrl}
+                            >
+                                <Link className="h-4 w-4 text-muted-foreground" />
+                            </a>
                             <div>
                                 <div className="font-medium">
-                                    <a 
-                                        href={`#`} 
+                                    <a
+                                        href={currentTaskUrl}
                                         className="hover:text-primary hover:underline"
-                                        onClick={(e) => {
-                                            e.preventDefault();
-                                            // Откроем ссылку через API для получения JIRA_HOST
-                                            window.open(`/api/jira/link/${currentTask.key}`, '_blank');
-                                        }}
                                     >
                                         {currentTask.key}: {currentTask.fields.summary || 'Неизвестно'}
                                     </a>

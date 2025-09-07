@@ -4,6 +4,42 @@ import { DecompositionBlock } from 'shared/schema';
 
 type LLMProvider = 'openai' | 'anthropic' | 'regexp';
 
+const getSystemPrompt = () => 'You are an expert at parsing JIRA task decomposition text. Always respond with valid JSON.';
+
+const getPrompt = (decompositionText: string) => `
+Analyze the following JIRA decomposition text and split it into blocks. Each block should be either "text" or "task".
+
+Rules:
+1. Task blocks can be in format like "M [repo] Task name" or "*S+ [xhh] Sidebar*" or in headings like "h2. S+ [backend] API для аутентификации"
+2. Task titles may include JIRA markup like "[base|https://example.com]"
+3. Extract estimation (XS, S, M, L, XL) and risk from the title
+4. For combined estimations like "S+" or "M+S", the base is the main estimation, risk is the extra part
+5. Repository name is in square brackets [repo]
+6. Task description includes everything until the next task OR until a heading of the same level or higher
+7. Track header levels - if we're in a task with header level h3, then h3 or higher (h1, h2) ends the task description
+8. Everything else is text blocks
+
+Text to analyze:
+${decompositionText}
+
+Respond with JSON in this format:
+{
+  "blocks": [
+    {
+      "type": "text|task",
+      "content": "exact text from original including task description",
+      "taskInfo": {
+        "title": "cleaned task name without markdown",
+        "repository": "repo name or null",
+        "estimation": "XS|S|M|L|XL or null",
+        "risk": "XS|S|M|L|XL or null",
+        "estimationSP": number_or_null,
+        "riskSP": number_or_null
+      }
+    }
+  ]
+}`;
+
 export class LLMService {
     private provider: LLMProvider;
     private openai?: OpenAI;
@@ -59,7 +95,7 @@ export class LLMService {
 
     async parseDecomposition(decompositionText: string, provider?: LLMProvider): Promise<DecompositionBlock[]> {
         const useProvider = provider || this.provider;
-
+        console.log(`Parsing decomposition using provider: ${useProvider}`);
         switch (useProvider) {
             case 'openai':
                 return this.parseWithOpenAI(decompositionText);
@@ -76,39 +112,7 @@ export class LLMService {
             throw new Error('OpenAI not initialized');
         }
 
-        const prompt = `
-Analyze the following JIRA decomposition text and split it into blocks. Each block should be either "text" or "task".
-
-Rules:
-1. Task blocks can be in format like "M [repo] Task name" or "*S+ [xhh] Sidebar*" or in headings like "h2. S+ [backend] API для аутентификации"
-2. Task titles may include JIRA markdown links like "[base|https://example.com]"
-3. Extract estimation (XS, S, M, L, XL) and risk from the title
-4. For combined estimations like "S+" or "M+S", the base is the main estimation, risk is the extra part
-5. Repository name is in square brackets [repo]
-6. Task description includes everything until the next task OR until a heading of the same level or higher
-7. Track header levels - if we're in a task with header level h3, then h3 or higher (h1, h2) ends the task description
-8. Everything else is text blocks
-
-Text to analyze:
-${decompositionText}
-
-Respond with JSON in this format:
-{
-  "blocks": [
-    {
-      "type": "text|task",
-      "content": "exact text from original including task description",
-      "taskInfo": {
-        "title": "cleaned task name without markdown",
-        "repository": "repo name or null",
-        "estimation": "XS|S|M|L|XL or null",
-        "risk": "XS|S|M|L|XL or null",
-        "estimationSP": number_or_null,
-        "riskSP": number_or_null
-      }
-    }
-  ]
-}`;
+        const prompt = getPrompt(decompositionText);
 
         try {
             const response = await this.openai.chat.completions.create({
@@ -116,15 +120,14 @@ Respond with JSON in this format:
                 messages: [
                     {
                         role: 'system',
-                        content: 'You are an expert at parsing JIRA task decomposition text. Always respond with valid JSON.',
+                        content: getSystemPrompt(),
                     },
                     {
                         role: 'user',
                         content: prompt,
                     },
                 ],
-                response_format: { type: 'json_object' },
-                temperature: 0,
+                temperature: 0.5,
             });
 
             const result = JSON.parse(response.choices[0].message.content || '{"blocks": []}');
@@ -140,39 +143,7 @@ Respond with JSON in this format:
             throw new Error('Anthropic not initialized');
         }
 
-        const prompt = `
-Analyze the following JIRA decomposition text and split it into blocks. Each block should be either "text" or "task".
-
-Rules:
-1. Task blocks can be in format like "M [repo] Task name" or "*S+ [xhh] Sidebar*" or in headings like "h2. S+ [backend] API для аутентификации"
-2. Task titles may include JIRA markdown links like "[base|https://example.com]"
-3. Extract estimation (XS, S, M, L, XL) and risk from the title
-4. For combined estimations like "S+" or "M+S", the base is the main estimation, risk is the extra part
-5. Repository name is in square brackets [repo]
-6. Task description includes everything until the next task OR until a heading of the same level or higher
-7. Track header levels - if we're in a task with header level h3, then h3 or higher (h1, h2) ends the task description
-8. Everything else is text blocks
-
-Text to analyze:
-${decompositionText}
-
-Respond with JSON in this format:
-{
-  "blocks": [
-    {
-      "type": "text|task",
-      "content": "exact text from original including task description",
-      "taskInfo": {
-        "title": "cleaned task name without markdown",
-        "repository": "repo name or null",
-        "estimation": "XS|S|M|L|XL or null",
-        "risk": "XS|S|M|L|XL or null",
-        "estimationSP": number_or_null,
-        "riskSP": number_or_null
-      }
-    }
-  ]
-}`;
+        const prompt = getPrompt(decompositionText);
 
         try {
             /*
@@ -189,8 +160,8 @@ Respond with JSON in this format:
 
             const response = await this.anthropic.messages.create({
                 model: DEFAULT_MODEL_STR,
-                max_tokens: 4000,
-                system: 'You are an expert at parsing JIRA task decomposition text. Always respond with valid JSON.',
+                max_tokens: 10000,
+                system: getSystemPrompt(),
                 messages: [
                     { role: 'user', content: prompt }
                 ],
