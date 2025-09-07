@@ -2,6 +2,7 @@
  * Utilities for handling JIRA markup
  */
 
+// @ts-ignore - jira2md doesn't have TypeScript declarations
 import * as j2m from 'jira2md';
 
 /**
@@ -43,14 +44,28 @@ export function jiraMarkupToHtml(text: string): string {
   
   try {
     // Use jira2md to convert JIRA markup to HTML
-    return j2m.to_html(text);
+    return j2m.jira_to_html(text);
   } catch (error) {
     console.warn('Failed to convert JIRA markup to HTML:', error);
-    // Fallback: just escape HTML and preserve line breaks
+    // Improved fallback with basic JIRA markup support
     return text
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
+      // Headers
+      .replace(/^h([1-6])\.\s*(.+)$/gm, '<h$1>$2</h$1>')
+      // Bold, italic, underline, strikethrough
+      .replace(/\*([^*]+)\*/g, '<strong>$1</strong>')
+      .replace(/_([^_]+)_/g, '<em>$1</em>')
+      .replace(/\+([^+]+)\+/g, '<u>$1</u>')
+      .replace(/--([^-]+)--/g, '<del>$1</del>')  // JIRA uses double dash, not single
+      // Simple lists - wrap consecutive list items
+      .replace(/((?:^[\*\-]\s+.+(?:\n|$))+)/gm, '<ul>$1</ul>')
+      .replace(/^[\*\-]\s+(.+)$/gm, '<li>$1</li>')
+      .replace(/((?:^#\s+.+(?:\n|$))+)/gm, '<ol>$1</ol>')
+      .replace(/^#\s+(.+)$/gm, '<li>$1</li>')
+      // Links [text|url] -> <a href="url">text</a>
+      .replace(/\[([^\|\]]+)\|([^\]]+)\]/g, '<a href="$2" target="_blank">$1</a>')
+      // Code inline
+      .replace(/\{\{([^}]+)\}\}/g, '<code>$1</code>')
+      // Line breaks
       .replace(/\n/g, '<br/>');
   }
 }
