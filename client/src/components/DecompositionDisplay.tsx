@@ -33,8 +33,17 @@ export const DecompositionDisplay = ({
     const { toast } = useToast();
 
     const parseMutation = useMutation({
-        mutationFn: () => api.parseDecomposition(decompositionText, jiraKey, provider),
+        mutationFn: () => {
+            console.log('[DecompositionDisplay] parseMutation starting with:', {
+                hasText: !!decompositionText,
+                provider,
+                jiraKey,
+                textLength: decompositionText?.length || 0
+            });
+            return api.parseDecomposition(decompositionText, jiraKey, provider);
+        },
         onSuccess: (data) => {
+            console.log('[DecompositionDisplay] parseMutation success:', data);
             if (data.success) {
                 onParsingComplete(data.blocks, data.estimation, data.sessionId, data.mapping, data.availableProviders);
                 toast({
@@ -58,12 +67,18 @@ export const DecompositionDisplay = ({
             console.warn('[DecompositionDisplay] No text to parse');
             return;
         }
-        console.log('[DecompositionDisplay] Manual parsing triggered');
+        console.log('[DecompositionDisplay] ⭐ Manual parsing MANUALLY triggered by user action!');
+        console.trace('[DecompositionDisplay] Call stack for parsing trigger:');
         parseMutation.mutate();
     };
 
     // Pass parsing function to parent when ready
     useEffect(() => {
+        console.log('[DecompositionDisplay] useEffect: passing function to parent', {
+            hasText: !!decompositionText,
+            provider,
+            textLength: decompositionText?.length || 0
+        });
         onParsingFunctionReady(triggerParsing);
     }, [decompositionText, provider]);
 

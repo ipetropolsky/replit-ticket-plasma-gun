@@ -82,6 +82,7 @@ export const TaskInputForm = ({
             }
         }
 
+        console.log('[TaskInputForm] Loading JIRA task - NO AUTO PARSING');
         fetchTaskMutation.mutate(jiraInput.trim());
     };
 
@@ -100,6 +101,7 @@ export const TaskInputForm = ({
         // Trigger parsing if function is available
         if (onParseRequested) {
             // Small delay to let state update
+            console.log('[TaskInputForm] ⭐ User clicked button - triggering parsing after 100ms delay');
             setTimeout(() => {
                 onParseRequested();
             }, 100);

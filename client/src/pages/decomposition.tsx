@@ -39,8 +39,13 @@ export const DecompositionPage = () => {
     const [selectedProvider, setSelectedProvider] = useState<string>('regexp');
     const [parseFunction, setParseFunction] = useState<(() => void) | null>(null);
 
+    const handleSetParseFunction = (fn: () => void) => {
+        console.log('[DecompositionPage] Setting parse function (should NOT auto-trigger)');
+        setParseFunction(() => fn);
+    };
+
     const handleTaskLoaded = (task: JiraTask, text: string) => {
-        console.log('[DecompositionPage] Task loaded:', {
+        console.log('[DecompositionPage] Task loaded - NO AUTO PARSING:', {
             taskKey: task.key,
             textLength: text.length,
             currentBlocksLength: blocks.length
@@ -135,7 +140,7 @@ export const DecompositionPage = () => {
                                 jiraKey={currentTask?.key || parentJiraKey}
                                 provider={selectedProvider}
                                 onParsingComplete={handleParsingComplete}
-                                onParsingFunctionReady={setParseFunction}
+                                onParsingFunctionReady={handleSetParseFunction}
                                 blocks={blocks}
                             />
                         )}
