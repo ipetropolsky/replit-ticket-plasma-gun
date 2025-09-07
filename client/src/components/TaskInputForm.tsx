@@ -194,6 +194,11 @@ export const TaskInputForm = ({
                         }}
                     />
                     
+                    {/* Help Text */}
+                    <div className="text-sm text-muted-foreground">
+                        Только выделим задачи из текста. Создание задач в JIRA — на следующем шаге.
+                    </div>
+                    
                     {/* Provider Selection and Submit Button */}
                     <div className="flex items-center justify-between gap-4">
                         {/* Provider Selection */}
@@ -252,10 +257,6 @@ export const TaskInputForm = ({
                         </Button>
                     </div>
                     
-                    {/* Help Text */}
-                    <div className="text-sm text-muted-foreground text-right">
-                        Выделим задачи из текста. Создание в JIRA — на следующем шаге.
-                    </div>
                 </div>
 
                 {/* Current Task Display */}
