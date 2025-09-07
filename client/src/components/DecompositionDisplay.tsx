@@ -51,7 +51,14 @@ export const DecompositionDisplay = ({
     });
 
     useEffect(() => {
+        console.log('[DecompositionDisplay] useEffect triggered:', {
+            decompositionText: decompositionText ? `${decompositionText.length} chars` : 'empty',
+            blocksLength: blocks.length,
+            willParse: !!(decompositionText && blocks.length === 0)
+        });
+        
         if (decompositionText && blocks.length === 0) {
+            console.log('[DecompositionDisplay] Starting parsing...');
             parseMutation.mutate();
         }
     }, [decompositionText, blocks.length]);

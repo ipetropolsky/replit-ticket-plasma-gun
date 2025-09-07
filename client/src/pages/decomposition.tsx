@@ -39,13 +39,21 @@ export const DecompositionPage = () => {
     const [selectedProvider, setSelectedProvider] = useState<string>('regexp');
 
     const handleTaskLoaded = (task: JiraTask, text: string) => {
-        setCurrentTask(task);
-        setDecompositionText(text);
-        setParentJiraKey(task.key); // Set parent key from loaded task
-        // Reset parsing results when new task is loaded
+        console.log('[DecompositionPage] Task loaded:', {
+            taskKey: task.key,
+            textLength: text.length,
+            currentBlocksLength: blocks.length
+        });
+        
+        // Reset parsing results FIRST
         setBlocks([]);
         setEstimation(null);
         setSessionId('');
+        
+        // Then set new data
+        setCurrentTask(task);
+        setDecompositionText(text);
+        setParentJiraKey(task.key);
     };
 
     const handleTextProvided = (text: string, parentKey?: string, provider?: string) => {
