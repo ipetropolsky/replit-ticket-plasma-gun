@@ -126,7 +126,7 @@ export const TaskInputForm = ({
                                 fontSize: '14px'
                             }}
                         >
-                            <RefreshCw className="h-4 w-4" style={{ marginRight: '10px' }} />
+                            <RefreshCw className="h-4 w-4" />
                             Сбросить
                         </Button>
                     )}
@@ -164,12 +164,12 @@ export const TaskInputForm = ({
                         >
                             {fetchTaskMutation.isPending ? (
                                 <>
-                                    <RefreshCw className="h-4 w-4 animate-spin" style={{ marginRight: '10px' }} />
+                                    <RefreshCw className="h-4 w-4 animate-spin" />
                                     Загрузка...
                                 </>
                             ) : (
                                 <>
-                                    <Download className="h-4 w-4" style={{ marginRight: '10px' }} />
+                                    <Download className="h-4 w-4" />
                                     Загрузить из JIRA
                                 </>
                             )}
@@ -251,7 +251,7 @@ export const TaskInputForm = ({
                                 fontSize: '16px'
                             }}
                         >
-                            <FileText className="h-4 w-4" style={{ marginRight: '10px' }} />
+                            <FileText className="h-4 w-4" />
                             Разбить на задачи
                         </Button>
                     </div>
