@@ -1,12 +1,12 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from 'src/components/ui/card';
+import { Badge } from 'src/components/ui/badge';
 import { Loader2 } from 'lucide-react';
-import type { DecompositionBlock } from '@shared/schema';
+import type { DecompositionBlock } from 'shared/schema';
 import { UseMutationResult } from '@tanstack/react-query';
 
 interface DecompositionDisplayProps {
     blocks: DecompositionBlock[];
-    parseMutation: UseMutationResult;
+    parseMutation: UseMutationResult<any, any, string, unknown>;
 }
 
 export const DecompositionDisplay = ({
@@ -126,7 +126,7 @@ export const DecompositionDisplay = ({
                                             {block.type === 'task' ? (
                                                 <>
                                                     {(() => {
-                                                        const category = getRepositoryCategory(block.taskInfo?.repository);
+                                                        const category = getRepositoryCategory(block.taskInfo?.repository || null);
                                                         return (
                                                             <Badge
                                                                 className={`text-xs ${category.bg} ${category.text} border-0`}

@@ -1,23 +1,17 @@
 import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from 'src/components/ui/card';
+import { Button } from 'src/components/ui/button';
+import { Badge } from 'src/components/ui/badge';
 import { Plus, Eye, CheckCircle, ExternalLink } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { api } from '@/lib/api';
-import type { TaskCreationResponse } from '@shared/schema';
+import { useToast } from 'src/hooks/use-toast';
+import { api } from 'src/lib/api';
+import type { TaskCreationResponse } from 'shared/schema';
+import { Estimation } from 'shared/types.ts';
 
 interface TaskCreationPanelProps {
     sessionId: string;
-    estimation: {
-        baseEstimation: number;
-        risks: number;
-        taskCount: number;
-        tasksWithoutEstimation: number;
-        formula: string;
-        riskFormula: string;
-    };
+    estimation: Estimation;
     additionalRiskPercent: number;
     blocks?: any[]; // DecompositionBlocks for task creation
     parentJiraKey?: string; // For linking created tasks
@@ -38,10 +32,10 @@ export const TaskCreationPanel = ({
         mutationFn: () => {
             // Extract tasks from blocks
             const tasks = blocks
-                .filter(block => 
-                    block.type === 'task' && 
-                    block.taskInfo && 
-                    block.taskInfo.estimation && 
+                .filter(block =>
+                    block.type === 'task' &&
+                    block.taskInfo &&
+                    block.taskInfo.estimation &&
                     block.taskInfo.estimationSP !== null
                 )
                 .map(block => ({
@@ -52,9 +46,9 @@ export const TaskCreationPanel = ({
                     estimation: block.taskInfo!.estimation!,
                     storyPoints: block.taskInfo!.estimationSP!
                 }));
-            
-            return api.createTasks({ 
-                sessionId, 
+
+            return api.createTasks({
+                sessionId,
                 additionalRiskPercent,
                 tasks,
                 parentJiraKey
@@ -63,7 +57,7 @@ export const TaskCreationPanel = ({
         onSuccess: (data) => {
             setCreatedTasks(data.createdTasks);
             setErrors(data.errors);
-            
+
             if (data.success) {
                 toast({
                     title: 'Задачи созданы!',
@@ -120,8 +114,8 @@ export const TaskCreationPanel = ({
                     <Button
                         variant="secondary"
                         className="px-6 py-3"
-                        style={{ 
-                            borderRadius: '12px', 
+                        style={{
+                            borderRadius: '12px',
                             height: '48px',
                             fontSize: '16px'
                         }}
@@ -135,7 +129,7 @@ export const TaskCreationPanel = ({
 
                 {/* Success State */}
                 {createdTasks.length > 0 && (
-                    <div 
+                    <div
                         className="border border-green-200 bg-green-50 rounded-lg p-4"
                         style={{ borderRadius: '12px' }}
                         data-testid="success-state"
@@ -149,7 +143,7 @@ export const TaskCreationPanel = ({
                             <ul className="space-y-1">
                                 {createdTasks.map((task) => (
                                     <li key={task.id}>
-                                        <a 
+                                        <a
                                             href={task.url}
                                             target="_blank"
                                             rel="noopener noreferrer"
@@ -168,7 +162,7 @@ export const TaskCreationPanel = ({
 
                 {/* Error State */}
                 {errors.length > 0 && (
-                    <div 
+                    <div
                         className="border border-red-200 bg-red-50 rounded-lg p-4"
                         style={{ borderRadius: '12px' }}
                         data-testid="error-state"

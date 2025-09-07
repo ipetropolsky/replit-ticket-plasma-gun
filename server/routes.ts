@@ -3,10 +3,10 @@ import { createServer, type Server } from "http";
 import { JiraService } from "./services/jira";
 import { LLMService } from "./services/llm";
 import { EstimationService } from "./services/estimation";
-import { 
-    JiraTaskSchema, 
+import {
+    JiraTaskSchema,
     CreateTaskRequestSchema,
-    TaskCreationResponseSchema 
+    TaskCreationResponseSchema
 } from "../shared/schema";
 
 // Lazy initialization to avoid credential errors at startup
@@ -16,22 +16,22 @@ let estimationService: EstimationService | null = null;
 
 function getServices(options: { needJira?: boolean; needLLM?: boolean; needEstimation?: boolean } = {}) {
     const services: any = {};
-    
+
     if (options.needJira !== false) {
         if (!jiraService) jiraService = new JiraService();
         services.jiraService = jiraService;
     }
-    
+
     if (options.needLLM !== false) {
         if (!llmService) llmService = new LLMService();
         services.llmService = llmService;
     }
-    
+
     if (options.needEstimation !== false) {
         if (!estimationService) estimationService = new EstimationService();
         services.estimationService = estimationService;
     }
-    
+
     return services;
 }
 
@@ -41,10 +41,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     app.post('/api/jira/task', async (req, res) => {
         try {
             const { input } = req.body;
-            
+
             if (!input) {
-                return res.status(400).json({ 
-                    message: 'JIRA task key or URL is required' 
+                return res.status(400).json({
+                    message: 'JIRA task key or URL is required'
                 });
             }
 
@@ -147,7 +147,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
 
             const { jiraService } = getServices();
-            
+
             // Prepare tasks for JIRA creation
             const jiraTasks = tasks.map((task: any) => ({
                 summary: task.summary || task.title,
@@ -172,7 +172,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 } else {
                     // Bulk creation
                     const bulkResult = await jiraService.createBulkIssues(jiraTasks);
-                    
+
                     // Process successful creations
                     createdTasks = bulkResult.issues.map((issue, index) => ({
                         key: issue.key,

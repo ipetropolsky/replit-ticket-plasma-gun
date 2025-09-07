@@ -1,44 +1,36 @@
-import { useRef, useState } from 'react';
-import { TaskInputForm } from '@/components/TaskInputForm';
-import { DecompositionDisplay } from '@/components/DecompositionDisplay';
-import { EstimationSummary } from '@/components/EstimationSummary';
-import { TaskCreationPanel } from '@/components/TaskCreationPanel';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ClipboardList, Info } from 'lucide-react';
+import { useState } from 'react';
+import { ProviderInfo, TaskInputForm } from 'src/components/TaskInputForm';
+import { DecompositionDisplay } from 'src/components/DecompositionDisplay';
+import { EstimationSummary } from 'src/components/EstimationSummary';
+import { TaskCreationPanel } from 'src/components/TaskCreationPanel';
+import { Card, CardContent, CardHeader, CardTitle } from 'src/components/ui/card';
+import { Info } from 'lucide-react';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from '@/components/ui/tooltip';
+} from 'src/components/ui/tooltip';
 import type {
     JiraTask,
     DecompositionBlock
-} from '@shared/schema';
+} from 'shared/schema';
 import { useMutation } from '@tanstack/react-query';
-import { useToast } from '@/hooks/use-toast.ts';
-import { api } from '@/lib/api.ts';
-
-interface EstimationData {
-    baseEstimation: number;
-    risks: number;
-    taskCount: number;
-    tasksWithoutEstimation: number;
-    formula: string;
-    riskFormula: string;
-}
+import { useToast } from 'src/hooks/use-toast.ts';
+import { api } from 'src/lib/api.ts';
+import { Estimation } from 'shared/types.ts';
 
 export const DecompositionPage = () => {
     const [currentTask, setCurrentTask] = useState<JiraTask | null>(null);
     const [decompositionText, setDecompositionText] = useState<string>('');
     const [blocks, setBlocks] = useState<DecompositionBlock[]>([]);
-    const [estimation, setEstimation] = useState<EstimationData | null>(null);
+    const [estimation, setEstimation] = useState<Estimation | null>(null);
     const [sessionId, setSessionId] = useState<string>('');
     const [mapping, setMapping] = useState<Record<string, number>>({});
     const [additionalRiskPercent, setAdditionalRiskPercent] = useState(20);
     const [parallelizationCoefficient, setParallelizationCoefficient] = useState(1.0);
     const [parentJiraKey, setParentJiraKey] = useState<string>('');
-    const [availableProviders, setAvailableProviders] = useState<Array<{ name: string; available: boolean }>>([]);
+    const [availableProviders, setAvailableProviders] = useState<ProviderInfo[]>([]);
     const [selectedProvider, setSelectedProvider] = useState<string>('regexp');
     const jiraKey = currentTask?.key || parentJiraKey;
 
@@ -102,10 +94,10 @@ export const DecompositionPage = () => {
 
     const handleParsingComplete = (
         parsedBlocks: DecompositionBlock[],
-        estimationData: EstimationData,
+        estimationData: Estimation,
         sessionId: string,
         mappingData: Record<string, number>,
-        providersData?: Array<{ name: string; available: boolean }>
+        providersData?: ProviderInfo[],
     ) => {
         setBlocks(parsedBlocks);
         setEstimation(estimationData);
@@ -178,7 +170,6 @@ export const DecompositionPage = () => {
                                 sessionId={sessionId}
                                 estimation={estimation}
                                 additionalRiskPercent={additionalRiskPercent}
-                                onAdditionalRiskChange={setAdditionalRiskPercent}
                                 blocks={blocks}
                                 parentJiraKey={parentJiraKey}
                             />

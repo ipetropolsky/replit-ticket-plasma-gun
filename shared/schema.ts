@@ -9,6 +9,14 @@ export const JiraTaskSchema = z.object({
         description: z.string().nullable(),
         customfield_36836: z.string().nullable(), // Декомпозиция
         customfield_24213: z.string().nullable(), // Ссылки на макеты
+        customfield_23911: z.string().nullable(), // Оценка в майках
+        customfield_11212: z.number().nullable(), // Story Points
+        project: z.object({
+            key: z.string(),
+        }).nullable(),
+        issuetype: z.object({
+            id: z.string(),
+        }).nullable(),
         status: z.object({
             name: z.string(),
         }),

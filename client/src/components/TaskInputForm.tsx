@@ -1,20 +1,19 @@
 import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardHeader, CardTitle } from 'src/components/ui/card';
+import { Button } from 'src/components/ui/button';
+import { Input } from 'src/components/ui/input';
+import { Label } from 'src/components/ui/label';
+import { Textarea } from 'src/components/ui/textarea';
 import { RefreshCw, Download, FileText, Link } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { api } from '@/lib/api';
-import type { JiraTask } from '@shared/schema';
+import { useToast } from 'src/hooks/use-toast';
+import { api } from 'src/lib/api';
+import type { JiraTask } from 'shared/schema';
 
 type LLMProvider = 'openai' | 'anthropic' | 'regexp';
-
-interface ProviderInfo {
-  name: LLMProvider;
-  available: boolean;
+export interface ProviderInfo {
+    name: LLMProvider;
+    available: boolean;
 }
 
 interface TaskInputFormProps {

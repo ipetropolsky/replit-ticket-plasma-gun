@@ -1,10 +1,29 @@
-import { JiraTask } from 'shared/schema';
+import { CreateTaskRequest, JiraTask } from 'shared/schema';
 
 interface JiraConfig {
     host: string;
     user: string;
     token: string;
 }
+
+interface CreateBulkIssuesResponse {
+    issues: Array<{ id: string; key: string; self: string }>;
+    errors: Array<{ status: number; elementErrors: any; failedElementNumber: number }>;
+}
+
+interface CreateIssueResponse {
+    id: string;
+    key: string;
+    self: string;
+}
+
+interface TaskForCreation {
+    summary: string;
+    description: string;
+    estimation?: string; // XS, S, M
+    storyPoints?: number; // customfield_11212
+}
+
 
 export class JiraService {
     private config: JiraConfig;
@@ -23,7 +42,7 @@ export class JiraService {
             console.error(`[JIRA] JIRA_TOKEN: ${this.config.token ? '✓ set' : '✗ missing'}`);
             throw new Error('JIRA configuration is incomplete. Please check JIRA_HOST, JIRA_USER, and JIRA_TOKEN environment variables.');
         }
-        
+
         console.log(`[JIRA] Initialized with host: ${this.config.host}`);
         console.log(`[JIRA] User: ${this.config.user}`);
         console.log(`[JIRA] Token: ${'*'.repeat(Math.min(this.config.token.length, 10))}`);
@@ -37,12 +56,12 @@ export class JiraService {
     private async makeRequest(endpoint: string, options: RequestInit = {}): Promise<Response> {
         const url = `${this.config.host}${endpoint}`;
         const method = options.method || 'GET';
-        
+
         console.log(`[JIRA] ${method} ${url}`);
         if (options.body) {
             console.log(`[JIRA] Request body:`, JSON.parse(options.body as string));
         }
-        
+
         const response = await fetch(url, {
             ...options,
             headers: {
@@ -66,10 +85,10 @@ export class JiraService {
 
     async getIssue(issueKey: string): Promise<JiraTask> {
         console.log(`[JIRA] Fetching issue: ${issueKey}`);
-        
+
         const fields = [
             'summary',
-            'description', 
+            'description',
             'customfield_36836', // Декомпозиция
             'customfield_24213', // Ссылки на макеты
             'status',
@@ -78,7 +97,7 @@ export class JiraService {
         ].join(',');
 
         const response = await this.makeRequest(`/rest/api/2/issue/${issueKey}?fields=${fields}`);
-        const data = await response.json();
+        const data = await response.json() as JiraTask;
 
         console.log(`[JIRA] Successfully fetched issue ${issueKey}: ${data.fields?.summary || 'No summary'}`);
         return data as JiraTask;
@@ -89,9 +108,9 @@ export class JiraService {
         description: string;
         estimation?: string; // customfield_23911
         storyPoints?: number; // customfield_11212
-    }): Promise<{ id: string; key: string; self: string }> {
+    }): Promise<CreateIssueResponse> {
         console.log(`[JIRA] Creating single issue: ${taskData.summary}`);
-        
+
         const payload: any = {
             fields: {
                 project: { key: 'HH' },
@@ -116,27 +135,19 @@ export class JiraService {
             body: JSON.stringify(payload),
         });
 
-        const result = await response.json();
+        const result = await response.json() as CreateIssueResponse;
         console.log(`[JIRA] Successfully created issue: ${result.key}`);
         return result;
     }
 
-    async createBulkIssues(tasks: Array<{
-        summary: string;
-        description: string;
-        estimation?: string;
-        storyPoints?: number;
-    }>): Promise<{
-        issues: Array<{ id: string; key: string; self: string }>;
-        errors: Array<{ status: number; elementErrors: any; failedElementNumber: number }>;
-    }> {
+    async createBulkIssues(tasks: Array<TaskForCreation>): Promise<CreateBulkIssuesResponse> {
         console.log(`[JIRA] Creating ${tasks.length} issues in bulk`);
         tasks.forEach((task, i) => {
             console.log(`[JIRA] Task ${i + 1}: ${task.summary} (${task.estimation || 'no estimation'}, ${task.storyPoints || 'no SP'} SP)`);
         });
-        
+
         const issueUpdates = tasks.map((taskData) => {
-            const fields: any = {
+            const fields: Partial<JiraTask['fields']> = {
                 project: { key: 'HH' },
                 issuetype: { id: '3' }, // Task type
                 summary: taskData.summary,
@@ -164,25 +175,25 @@ export class JiraService {
             body: JSON.stringify(payload),
         });
 
-        const result = await response.json();
-        
+        const result: CreateBulkIssuesResponse = await response.json() as CreateBulkIssuesResponse;
+
         if (result.issues) {
             console.log(`[JIRA] Successfully created ${result.issues.length} issues`);
             result.issues.forEach((issue: any) => {
                 console.log(`[JIRA] Created: ${issue.key}`);
             });
         }
-        
+
         if (result.errors && result.errors.length > 0) {
             console.error(`[JIRA] ${result.errors.length} errors during bulk creation:`, result.errors);
         }
-        
+
         return result;
     }
 
     async linkIssues(parentKey: string, childKey: string): Promise<void> {
         console.log(`[JIRA] Linking issues: ${parentKey} -> ${childKey}`);
-        
+
         const payload = {
             type: { name: 'Inclusion' },
             inwardIssue: { key: parentKey },
@@ -193,7 +204,7 @@ export class JiraService {
             method: 'POST',
             body: JSON.stringify(payload),
         });
-        
+
         console.log(`[JIRA] Successfully linked ${parentKey} -> ${childKey}`);
     }
 

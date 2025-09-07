@@ -1,9 +1,10 @@
 import fs from 'fs';
 import path from 'path';
 import { EstimationMapping, DecompositionBlock } from 'shared/schema';
+import { Estimation } from 'shared/types.ts';
 
 export class EstimationService {
-    private mapping: EstimationMapping;
+    private mapping: EstimationMapping | undefined;
 
     constructor() {
         this.loadMapping();
@@ -25,16 +26,9 @@ export class EstimationService {
         }
     }
 
-    calculateTotalEstimation(blocks: DecompositionBlock[]): {
-        baseEstimation: number;
-        risks: number;
-        taskCount: number;
-        tasksWithoutEstimation: number;
-        formula: string;
-        riskFormula: string;
-    } {
+    calculateTotalEstimation(blocks: DecompositionBlock[]): Estimation {
         const taskBlocks = blocks.filter(block => block.type === 'task' && block.taskInfo);
-        
+
         let baseEstimation = 0;
         let risks = 0;
         let taskCount = 0;
@@ -44,16 +38,16 @@ export class EstimationService {
 
         for (const block of taskBlocks) {
             if (!block.taskInfo) continue;
-            
+
             taskCount++;
-            
+
             if (block.taskInfo.estimation && block.taskInfo.estimationSP) {
                 baseEstimation += block.taskInfo.estimationSP;
                 estimations.push(block.taskInfo.estimation);
             } else if (block.taskInfo.estimation === '?' || !block.taskInfo.estimation) {
                 tasksWithoutEstimation++;
             }
-            
+
             if (block.taskInfo.risk && block.taskInfo.riskSP) {
                 risks += block.taskInfo.riskSP;
                 riskItems.push(block.taskInfo.risk);
@@ -93,7 +87,7 @@ export class EstimationService {
 
         while (daysAdded < workingDays) {
             deliveryDate.setDate(deliveryDate.getDate() + 1);
-            
+
             // Skip weekends (Saturday = 6, Sunday = 0)
             if (deliveryDate.getDay() !== 0 && deliveryDate.getDay() !== 6) {
                 daysAdded++;

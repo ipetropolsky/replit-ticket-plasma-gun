@@ -1,10 +1,12 @@
 import { apiRequest } from './queryClient';
-import type { 
-    JiraTask, 
-    DecompositionBlock, 
+import type {
+    JiraTask,
+    DecompositionBlock,
     CreateTaskRequest,
-    TaskCreationResponse 
-} from '@shared/schema';
+    TaskCreationResponse
+} from 'shared/schema';
+import { Estimation } from 'shared/types.ts';
+import { ProviderInfo } from 'src/components/TaskInputForm.tsx';
 
 interface FetchJiraTaskResponse {
     success: boolean;
@@ -14,19 +16,13 @@ interface FetchJiraTaskResponse {
     example?: string;
 }
 
-interface ParseDecompositionResponse {
+export interface ParseDecompositionResponse {
     success: boolean;
     sessionId: string;
     blocks: DecompositionBlock[];
-    estimation: {
-        baseEstimation: number;
-        risks: number;
-        taskCount: number;
-        formula: string;
-        riskFormula: string;
-    };
+    estimation: Estimation;
     mapping: Record<string, number>;
-    availableProviders?: Array<{ name: string; available: boolean }>;
+    availableProviders?: ProviderInfo[];
 }
 
 interface EstimationConfigResponse {
