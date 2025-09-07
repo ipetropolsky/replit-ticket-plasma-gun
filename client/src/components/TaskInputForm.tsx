@@ -263,7 +263,19 @@ export const TaskInputForm = ({
                         <div className="flex items-center gap-3">
                             <Link className="h-4 w-4 text-muted-foreground" />
                             <div>
-                                <div className="font-medium">{currentTask.key}: {currentTask.fields.summary || 'Неизвестно'}</div>
+                                <div className="font-medium">
+                                    <a 
+                                        href={`#`} 
+                                        className="hover:text-primary hover:underline"
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            // Откроем ссылку через API для получения JIRA_HOST
+                                            window.open(`/api/jira/link/${currentTask.key}`, '_blank');
+                                        }}
+                                    >
+                                        {currentTask.key}: {currentTask.fields.summary || 'Неизвестно'}
+                                    </a>
+                                </div>
                                 <div className="text-sm text-muted-foreground">
                                     {currentTask.fields.assignee?.displayName || 'Исполнитель неизвестен'} • {currentTask.fields.status?.name || 'Статус неизвестен'}
                                 </div>

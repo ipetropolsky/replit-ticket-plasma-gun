@@ -79,7 +79,7 @@ export const DecompositionPage = () => {
     };
 
     const handleTextProvided = (text: string, parentKey?: string, provider?: string) => {
-        setCurrentTask(null); // No JIRA task loaded
+        // НЕ сбрасываем currentTask - пусть блок "Источник" остается
         setDecompositionText(text);
         setParentJiraKey(parentKey || ''); // Optional parent key
         if (provider) {

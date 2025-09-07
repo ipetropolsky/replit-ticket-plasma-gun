@@ -6,6 +6,7 @@ import { Badge } from 'src/components/ui/badge';
 import { Plus, Eye, CheckCircle, ExternalLink } from 'lucide-react';
 import { useToast } from 'src/hooks/use-toast';
 import { api } from 'src/lib/api';
+import { stripJiraMarkup } from '../lib/jira-markup';
 import type { TaskCreationResponse } from 'shared/schema';
 import { Estimation } from 'shared/types.ts';
 
@@ -39,8 +40,8 @@ export const TaskCreationPanel = ({
                     block.taskInfo.estimationSP !== null
                 )
                 .map(block => ({
-                    title: block.taskInfo!.title,
-                    summary: `${block.taskInfo!.repository ? `[${block.taskInfo!.repository}] ` : ''}${block.taskInfo!.title}`,
+                    title: stripJiraMarkup(block.taskInfo!.title),
+                    summary: `${block.taskInfo!.repository ? `[${block.taskInfo!.repository}] ` : ''}${stripJiraMarkup(block.taskInfo!.title)}`,
                     content: block.content,
                     description: block.content,
                     estimation: block.taskInfo!.estimation!,

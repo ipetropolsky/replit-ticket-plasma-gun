@@ -96,6 +96,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
     });
 
+    // Redirect to JIRA task (for creating clickable links)
+    app.get('/api/jira/link/:key', (req, res) => {
+        const { key } = req.params;
+        const jiraUrl = `${process.env.JIRA_HOST}/browse/${key}`;
+        res.redirect(jiraUrl);
+    });
+
     // Parse decomposition text using LLM
     app.post('/api/decomposition/parse', async (req, res) => {
         try {
