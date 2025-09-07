@@ -6,26 +6,26 @@ export const JiraTaskSchema = z.object({
     id: z.string(),
     fields: z.object({
         summary: z.string(),
-        description: z.string().nullable(),
-        customfield_36836: z.string().nullable(), // Декомпозиция
-        customfield_24213: z.string().nullable(), // Ссылки на макеты
-        customfield_23911: z.string().nullable(), // Оценка в майках
-        customfield_11212: z.number().nullable(), // Story Points
+        description: z.string().optional(),
+        customfield_36836: z.string().optional(), // Декомпозиция
+        customfield_24213: z.string().optional(), // Ссылки на макеты
+        customfield_23911: z.string().optional(), // Оценка в майках
+        customfield_11212: z.number().optional(), // Story Points
         project: z.object({
             key: z.string(),
-        }).nullable(),
+        }).optional(),
         issuetype: z.object({
             id: z.string(),
-        }).nullable(),
+        }).optional(),
         status: z.object({
             name: z.string(),
-        }),
+        }).optional(),
         assignee: z.object({
             displayName: z.string(),
-        }).nullable(),
+        }).optional(),
         priority: z.object({
             name: z.string(),
-        }).nullable(),
+        }).optional(),
     }),
 });
 
