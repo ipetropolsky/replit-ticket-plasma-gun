@@ -1,4 +1,6 @@
 import express, { type Request, Response, NextFunction } from "express";
+import path from "path";
+import fs from "fs";
 import { registerRoutes } from "./routes";
 
 const app = express();
@@ -30,7 +32,7 @@ app.use((req, res, next) => {
 
       if (app.get("env") === "development") {
         // Dynamic import log function only in development
-        import("./vite-loader").then(({ log }) => {
+        import("./vite").then(({ log }) => {
           log(logLine);
         });
       } else {
@@ -57,11 +59,22 @@ app.use((req, res, next) => {
   // setting up all the other routes so the catch-all route
   // doesn't interfere with the other routes
   if (app.get("env") === "development") {
-    const { setupVite } = await import("./vite-loader");
+    const { setupVite } = await import("./vite");
     await setupVite(app, server);
   } else {
-    const { serveStatic } = await import("./vite-loader");
-    serveStatic(app);
+    // Production: serve static files without vite dependency
+    const distPath = path.resolve(import.meta.dirname, "public");
+    
+    if (!fs.existsSync(distPath)) {
+      throw new Error(
+        `Could not find the build directory: ${distPath}, make sure to build the client first`,
+      );
+    }
+
+    app.use(express.static(distPath));
+    app.use("*", (_req, res) => {
+      res.sendFile(path.resolve(distPath, "index.html"));
+    });
   }
 
   // ALWAYS serve the app on the port specified in the environment variable PORT
