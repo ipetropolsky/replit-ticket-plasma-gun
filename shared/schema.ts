@@ -9,7 +9,8 @@ export const JiraTaskSchema = z.object({
         description: z.string().nullable().optional(),
         customfield_36836: z.string().nullable().optional(), // Декомпозиция
         customfield_24213: z.string().nullable().optional(), // Ссылки на макеты
-        customfield_23911: z.string().nullable().optional(), // Оценка в майках
+        customfield_23613: z.string().nullable().optional(), // Оценка в майках PORTFOLIO
+        customfield_23911: z.string().nullable().optional(), // Оценка в майках HH
         customfield_11212: z.number().nullable().optional(), // Story Points
         project: z.object({
             key: z.string(),
@@ -35,8 +36,8 @@ export const DecompositionBlockSchema = z.object({
     taskInfo: z.object({
         title: z.string(),
         repository: z.string().nullable(),
-        estimation: z.string().nullable(), // XS, S, M
-        risk: z.string().nullable(), // XS, S, M
+        estimation: z.string().nullable(), // XS, S, M, L, XL
+        risk: z.string().nullable(), // XS, S, M, L
         estimationSP: z.number().nullable(),
         riskSP: z.number().nullable(),
     }).nullable(),

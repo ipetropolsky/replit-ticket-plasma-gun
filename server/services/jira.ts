@@ -20,7 +20,7 @@ interface CreateIssueResponse {
 interface TaskForCreation {
     summary: string;
     description: string;
-    estimation?: string; // XS, S, M
+    estimation?: string; // XS, S, S+, M, L, XL
     storyPoints?: number; // customfield_11212
 }
 
@@ -130,6 +130,8 @@ export class JiraService {
             console.log(`[JIRA] Adding story points: ${taskData.storyPoints}`);
         }
 
+        console.log(`[JIRA] Payload:`, payload);
+
         const response = await this.makeRequest('/rest/api/2/issue', {
             method: 'POST',
             body: JSON.stringify(payload),
@@ -169,6 +171,8 @@ export class JiraService {
         });
 
         const payload = { issueUpdates };
+
+        console.log(`[JIRA] Bulk payload:`, payload);
 
         const response = await this.makeRequest('/rest/api/2/issue/bulk', {
             method: 'POST',

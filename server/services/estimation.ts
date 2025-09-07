@@ -21,7 +21,8 @@ export class EstimationService {
                 XS: 0.5,
                 S: 1,
                 M: 2,
-                L: 3
+                L: 3,
+                XL: 5,
             };
         }
     }
@@ -110,7 +111,7 @@ export class EstimationService {
 
         const parts = Object.entries(counts)
             .sort(([a], [b]) => {
-                const order = { M: 3, S: 2, XS: 1 };
+                const order = { XL: 5, L: 4, M: 3, S: 2, XS: 1 };
                 return (order[b as keyof typeof order] || 0) - (order[a as keyof typeof order] || 0);
             })
             .map(([size, count]) => count === 1 ? size : `${count}${size}`);
