@@ -99,10 +99,7 @@ export const TaskInputForm = ({
 
         // Trigger parsing if function is available
         if (onParseRequested) {
-            // Small delay to let state update
-            setTimeout(() => {
-                onParseRequested();
-            }, 100);
+            onParseRequested();
         }
     };
 

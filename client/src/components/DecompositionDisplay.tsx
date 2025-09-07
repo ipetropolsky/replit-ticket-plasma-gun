@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -53,14 +53,14 @@ export const DecompositionDisplay = ({
     });
 
     // Expose parsing function for manual triggering
-    const triggerParsing = () => {
+    const triggerParsing = useCallback(() => {
         if (!decompositionText.trim()) {
             console.warn('[DecompositionDisplay] No text to parse');
             return;
         }
         console.log('[DecompositionDisplay] Manual parsing triggered');
         parseMutation.mutate();
-    };
+    }, [decompositionText, parseMutation]);
 
     // Pass parsing function to parent when ready
     useEffect(() => {
