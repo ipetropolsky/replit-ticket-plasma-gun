@@ -23,7 +23,7 @@ interface TaskInputFormProps {
     currentTask: JiraTask | null;
     onRefresh: () => void;
     availableProviders?: ProviderInfo[];
-    onParseRequested?: ((text?: string) => void) | null;
+    onParseRequested?: (() => void) | null;
 }
 
 export const TaskInputForm = ({
@@ -99,7 +99,7 @@ export const TaskInputForm = ({
 
         // Trigger parsing if function is available
         if (onParseRequested) {
-            onParseRequested(textInput.trim());
+            onParseRequested();
         }
     };
 

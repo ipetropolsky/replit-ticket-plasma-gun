@@ -18,7 +18,7 @@ interface DecompositionDisplayProps {
         mapping: Record<string, number>,
         availableProviders?: Array<{ name: string; available: boolean }>
     ) => void;
-    onParsingFunctionReady: (parseFn: (text?: string) => void) => void;
+    onParsingFunctionReady: (parseFn: () => void) => void;
     blocks: DecompositionBlock[];
 }
 
@@ -33,10 +33,7 @@ export const DecompositionDisplay = ({
     const { toast } = useToast();
 
     const parseMutation = useMutation({
-        mutationFn: (textOverride?: string) => {
-            const textToParse = textOverride || decompositionText;
-            return api.parseDecomposition(textToParse, jiraKey, provider);
-        },
+        mutationFn: () => api.parseDecomposition(decompositionText, jiraKey, provider),
         onSuccess: (data) => {
             if (data.success) {
                 onParsingComplete(data.blocks, data.estimation, data.sessionId, data.mapping, data.availableProviders);
@@ -56,14 +53,13 @@ export const DecompositionDisplay = ({
     });
 
     // Expose parsing function for manual triggering
-    const triggerParsing = useCallback((textOverride?: string) => {
-        const textToParse = textOverride || decompositionText;
-        if (!textToParse.trim()) {
+    const triggerParsing = useCallback(() => {
+        if (!decompositionText.trim()) {
             console.warn('[DecompositionDisplay] No text to parse');
             return;
         }
         console.log('[DecompositionDisplay] Manual parsing triggered');
-        parseMutation.mutate(textToParse);
+        parseMutation.mutate();
     }, [decompositionText, parseMutation]);
 
     // Pass parsing function to parent when ready

@@ -37,9 +37,9 @@ export const DecompositionPage = () => {
     const [parentJiraKey, setParentJiraKey] = useState<string>('');
     const [availableProviders, setAvailableProviders] = useState<Array<{ name: string; available: boolean }>>([]);
     const [selectedProvider, setSelectedProvider] = useState<string>('regexp');
-    const [parseFunction, setParseFunction] = useState<((text?: string) => void) | null>(null);
+    const [parseFunction, setParseFunction] = useState<(() => void) | null>(null);
 
-    const handleSetParseFunction = (fn: (text?: string) => void) => {
+    const handleSetParseFunction = (fn: () => void) => {
         setParseFunction(() => fn);
     };
 
