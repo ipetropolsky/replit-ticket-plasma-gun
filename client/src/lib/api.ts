@@ -25,9 +25,16 @@ export interface ParseDecompositionResponse {
     availableProviders?: ProviderInfo[];
 }
 
-interface EstimationConfigResponse {
+interface ConfigResponse {
     success: boolean;
-    mapping: Record<string, number>;
+    estimationMapping: Record<string, number>;
+    repositoryCategories: Record<string, any>;
+    jiraHost: string;
+    tokens: {
+        openai: boolean;
+        anthropic: boolean;
+        jira: boolean;
+    };
 }
 
 export const api = {
@@ -50,8 +57,8 @@ export const api = {
         return await response.json();
     },
 
-    async getEstimationConfig(): Promise<EstimationConfigResponse> {
-        const response = await apiRequest('GET', '/api/estimation/config');
+    async getConfig(): Promise<ConfigResponse> {
+        const response = await apiRequest('GET', '/api/config');
         return await response.json();
     },
 };

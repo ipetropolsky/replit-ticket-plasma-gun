@@ -1,5 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import fs from 'fs';
+import path from 'path';
 import { JiraService } from "./services/jira";
 import { LLMService } from "./services/llm";
 import { EstimationService } from "./services/estimation";
@@ -213,14 +215,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
     });
 
-    // Get estimation configuration
-    app.get('/api/estimation/config', (req, res) => {
+    // Get application configuration
+    app.get('/api/config', (req, res) => {
         try {
-            const { estimationService } = getServices();
-            const mapping = estimationService.getEstimationMapping();
+            const { estimationService, jiraService } = getServices();
+            const estimationMapping = estimationService.getEstimationMapping();
+            const config = jiraService.getConfig();
+            
+            // Load repository categories
+            let repositoryCategories = {};
+            try {
+                const categoriesPath = path.join(process.cwd(), 'config/repository-categories.json');
+                const categoriesData = fs.readFileSync(categoriesPath, 'utf8');
+                repositoryCategories = JSON.parse(categoriesData);
+            } catch (err) {
+                console.warn('Could not load repository categories:', err);
+            }
+            
+            // Check token availability
+            const tokens = {
+                openai: !!process.env.OPENAI_API_KEY,
+                anthropic: !!process.env.ANTHROPIC_API_KEY,
+                jira: !!process.env.JIRA_TOKEN
+            };
+            
             res.json({
                 success: true,
-                mapping
+                estimationMapping,
+                repositoryCategories,
+                jiraHost: config.host,
+                tokens
             });
         } catch (error: any) {
             res.status(500).json({

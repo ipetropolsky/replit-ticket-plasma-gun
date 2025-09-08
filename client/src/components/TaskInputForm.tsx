@@ -23,6 +23,7 @@ interface TaskInputFormProps {
     currentTask: JiraTask | null;
     onRefresh: () => void;
     availableProviders?: ProviderInfo[];
+    jiraHost?: string;
 }
 
 /*
@@ -38,6 +39,7 @@ export const TaskInputForm = ({
     currentTask,
     onRefresh,
     availableProviders,
+    jiraHost,
 }: TaskInputFormProps) => {
     const [jiraInput, setJiraInput] = useState('');
     const [textInput, setTextInput] = useState('');
@@ -282,7 +284,7 @@ export const TaskInputForm = ({
 
                 {currentTask && (
                     <div className="pt-4 border-t border-border">
-                        <CurrentTask currentTask={currentTask} />
+                        <CurrentTask currentTask={currentTask} jiraHost={props.jiraHost} />
                     </div>
                 )}
             </CardContent>

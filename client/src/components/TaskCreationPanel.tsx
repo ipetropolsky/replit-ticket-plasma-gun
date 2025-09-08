@@ -18,6 +18,7 @@ interface TaskCreationPanelProps {
     additionalRiskPercent: number;
     blocks?: DecompositionBlock[]; // DecompositionBlocks for task creation
     parentJiraTask: JiraTask | null; // For linking created tasks
+    jiraHost?: string;
 }
 
 const getTaskSummary = (task: DecompositionBlock) => `${task.taskInfo!.repository ? `[${task.taskInfo!.repository}] ` : ''}${stripJiraMarkup(task.taskInfo!.title)}`
@@ -27,7 +28,8 @@ export const TaskCreationPanel = ({
     estimation,
     additionalRiskPercent,
     blocks = [],
-                                      parentJiraTask,
+    parentJiraTask,
+    jiraHost,
 }: TaskCreationPanelProps) => {
     const [createdTasks, setCreatedTasks] = useState<TaskCreationResponse['createdTasks']>([]);
     const [errors, setErrors] = useState<string[]>([]);
@@ -200,7 +202,7 @@ export const TaskCreationPanel = ({
                 )}
                 {parentJiraTask && (
                     <div className="pt-4 border-t border-border">
-                        <CurrentTask currentTask={parentJiraTask} />
+                        <CurrentTask currentTask={parentJiraTask} jiraHost={props.jiraHost} />
                     </div>
                 )}
             </CardContent>

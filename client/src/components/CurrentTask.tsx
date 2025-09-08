@@ -3,14 +3,15 @@ import { Link } from 'lucide-react';
 
 interface CurrentTaskProps {
     currentTask: JiraTask | null;
+    jiraHost?: string;
 }
 
-export const CurrentTask = ({ currentTask }: CurrentTaskProps) => {
+export const CurrentTask = ({ currentTask, jiraHost }: CurrentTaskProps) => {
     if (!currentTask) {
         return <div className="text-sm text-gray-500">Портфель не загружен</div>;
     }
 
-    const currentTaskUrl = `https://jira.hh.ru/browse/${currentTask.key}`;
+    const currentTaskUrl = `${jiraHost || 'https://jira.hh.ru'}/browse/${currentTask.key}`;
 
     return (
         <div className="flex items-center gap-3">

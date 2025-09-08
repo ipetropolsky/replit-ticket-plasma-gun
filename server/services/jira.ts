@@ -54,7 +54,15 @@ export class JiraService {
             console.error(`[JIRA] JIRA_TOKEN: ${this.config.token ? '✓ set' : '✗ missing'}`);
             throw new Error('JIRA configuration is incomplete. Please check JIRA_HOST, JIRA_USER, and JIRA_TOKEN environment variables.');
         }
+        
+        this.logInit();
+    }
 
+    getConfig(): JiraConfig {
+        return { ...this.config };
+    }
+
+    private logInit() {
         console.log(`[JIRA] Initialized with host: ${this.config.host}`);
         console.log(`[JIRA] User: ${this.config.user}`);
         console.log(`[JIRA] Token: ${'*'.repeat(Math.min(this.config.token.length, 10))}`);

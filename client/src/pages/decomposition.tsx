@@ -1,11 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ProviderInfo, TaskInputForm } from 'src/components/TaskInputForm';
 import { DecompositionDisplay } from 'src/components/DecompositionDisplay';
 import { EstimationSummary } from 'src/components/EstimationSummary';
 import { TaskCreationPanel } from 'src/components/TaskCreationPanel';
 import { Button } from 'src/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from 'src/components/ui/card';
-import { HelpCircle, Info } from 'lucide-react';
+import { HelpCircle, Info, Loader2 } from 'lucide-react';
 import {
   Tooltip,
   TooltipContent,
@@ -35,9 +35,46 @@ export const DecompositionPage = () => {
     const [availableProviders, setAvailableProviders] = useState<ProviderInfo[]>([]);
     const [selectedProvider, setSelectedProvider] = useState<string>('regexp');
     const [showHelpModal, setShowHelpModal] = useState<boolean>(false);
+    const [isClosingModal, setIsClosingModal] = useState<boolean>(false);
+    const [config, setConfig] = useState<{
+        estimationMapping: Record<string, number>;
+        repositoryCategories: Record<string, any>;
+        jiraHost: string;
+        tokens: { openai: boolean; anthropic: boolean; jira: boolean };
+    } | null>(null);
+    const [configLoading, setConfigLoading] = useState<boolean>(true);
     const jiraKey = currentTask?.key || parentJiraKey;
 
     const { toast } = useToast();
+
+    // Load configuration on startup
+    useEffect(() => {
+        const loadConfig = async () => {
+            try {
+                setConfigLoading(true);
+                const response = await api.getConfig();
+                if (response.success) {
+                    setConfig({
+                        estimationMapping: response.estimationMapping,
+                        repositoryCategories: response.repositoryCategories,
+                        jiraHost: response.jiraHost,
+                        tokens: response.tokens
+                    });
+                    setMapping(response.estimationMapping);
+                }
+            } catch (error) {
+                console.error('Failed to load config:', error);
+                toast({
+                    variant: 'destructive',
+                    title: 'Ошибка загрузки конфигурации',
+                    description: 'Не удалось загрузить настройки приложения'
+                });
+            } finally {
+                setConfigLoading(false);
+            }
+        };
+        loadConfig();
+    }, []);
 
     const parseMutation = useMutation({
         mutationFn: (text: string) => api.parseDecomposition(text, jiraKey, selectedProvider),
@@ -163,6 +200,7 @@ export const DecompositionPage = () => {
                             currentTask={currentTask}
                             onRefresh={handleRefresh}
                             availableProviders={availableProviders}
+                            jiraHost={config?.jiraHost}
                         />
 
                         {decompositionText && (
@@ -187,6 +225,7 @@ export const DecompositionPage = () => {
                                 additionalRiskPercent={additionalRiskPercent}
                                 blocks={blocks}
                                 parentJiraTask={currentTask}
+                                jiraHost={config?.jiraHost}
                             />
                         )}
                     </div>
@@ -204,8 +243,13 @@ export const DecompositionPage = () => {
                                 <div>
                                     <div className="text-base text-muted-foreground mb-2">Майки и SP:</div>
                                     <div className="space-y-1">
-                                        {Object.entries(mapping).length > 0 ? (
-                                            Object.entries(mapping).map(([size, sp]) => (
+                                        {configLoading ? (
+                                            <div className="flex items-center space-x-2">
+                                                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                                                <span className="text-sm text-muted-foreground">Загрузка...</span>
+                                            </div>
+                                        ) : config?.estimationMapping && Object.entries(config.estimationMapping).length > 0 ? (
+                                            Object.entries(config.estimationMapping).map(([size, sp]) => (
                                                 <div key={size} className="text-sm text-muted-foreground">
                                                     {size}: <span className="font-medium text-foreground">{sp} SP</span>
                                                 </div>
@@ -228,53 +272,71 @@ export const DecompositionPage = () => {
                                         {/* JIRA Status */}
                                         <div className="text-sm text-muted-foreground">
                                             JIRA API:{' '}
-                                            <TooltipProvider>
-                                                <Tooltip>
-                                                    <TooltipTrigger asChild>
-                                                        <span className="inline-flex items-center space-x-1">
-                                                            <span className="font-medium text-orange-600">Токен не найден</span>
-                                                            <Info className="h-4 w-4 text-orange-600" style={{ marginTop: '2px' }} />
-                                                        </span>
-                                                    </TooltipTrigger>
-                                                    <TooltipContent>
-                                                        <p>Необходимо настроить JIRA_HOST, JIRA_USER и JIRA_TOKEN</p>
-                                                    </TooltipContent>
-                                                </Tooltip>
-                                            </TooltipProvider>
+                                            {configLoading ? (
+                                                <Loader2 className="h-3 w-3 animate-spin inline" />
+                                            ) : (
+                                                <TooltipProvider>
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <span className="inline-flex items-center space-x-1">
+                                                                <span className={`font-medium ${config?.tokens.jira ? 'text-green-600' : 'text-orange-600'}`}>
+                                                                    {config?.tokens.jira ? 'Подключен' : 'Токен не найден'}
+                                                                </span>
+                                                                <Info className={`h-4 w-4 ${config?.tokens.jira ? 'text-green-600' : 'text-orange-600'}`} style={{ marginTop: '2px' }} />
+                                                            </span>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent>
+                                                            <p>Необходимо настроить JIRA_HOST, JIRA_USER и JIRA_TOKEN</p>
+                                                        </TooltipContent>
+                                                    </Tooltip>
+                                                </TooltipProvider>
+                                            )}
                                         </div>
                                         {/* OpenAI Status */}
                                         <div className="text-sm text-muted-foreground">
                                             OpenAI API:{' '}
-                                            <TooltipProvider>
-                                                <Tooltip>
-                                                    <TooltipTrigger asChild>
-                                                        <span className="inline-flex items-center space-x-1">
-                                                            <span className="font-medium text-orange-600">Токен не найден</span>
-                                                            <Info className="h-4 w-4 text-orange-600" style={{ marginTop: '2px' }} />
-                                                        </span>
-                                                    </TooltipTrigger>
-                                                    <TooltipContent>
-                                                        <p>Необходимо настроить OPENAI_API_KEY</p>
-                                                    </TooltipContent>
-                                                </Tooltip>
-                                            </TooltipProvider>
+                                            {configLoading ? (
+                                                <Loader2 className="h-3 w-3 animate-spin inline" />
+                                            ) : (
+                                                <TooltipProvider>
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <span className="inline-flex items-center space-x-1">
+                                                                <span className={`font-medium ${config?.tokens.openai ? 'text-green-600' : 'text-orange-600'}`}>
+                                                                    {config?.tokens.openai ? 'Подключен' : 'Токен не найден'}
+                                                                </span>
+                                                                <Info className={`h-4 w-4 ${config?.tokens.openai ? 'text-green-600' : 'text-orange-600'}`} style={{ marginTop: '2px' }} />
+                                                            </span>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent>
+                                                            <p>Необходимо настроить OPENAI_API_KEY</p>
+                                                        </TooltipContent>
+                                                    </Tooltip>
+                                                </TooltipProvider>
+                                            )}
                                         </div>
                                         {/* Anthropic Status */}
                                         <div className="text-sm text-muted-foreground">
                                             Anthropic API:{' '}
-                                            <TooltipProvider>
-                                                <Tooltip>
-                                                    <TooltipTrigger asChild>
-                                                        <span className="inline-flex items-center space-x-1">
-                                                            <span className="font-medium text-orange-600">Токен не найден</span>
-                                                            <Info className="h-4 w-4 text-orange-600" style={{ marginTop: '2px' }} />
-                                                        </span>
-                                                    </TooltipTrigger>
-                                                    <TooltipContent>
-                                                        <p>Необходимо настроить ANTHROPIC_API_KEY</p>
-                                                    </TooltipContent>
-                                                </Tooltip>
-                                            </TooltipProvider>
+                                            {configLoading ? (
+                                                <Loader2 className="h-3 w-3 animate-spin inline" />
+                                            ) : (
+                                                <TooltipProvider>
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <span className="inline-flex items-center space-x-1">
+                                                                <span className={`font-medium ${config?.tokens.anthropic ? 'text-green-600' : 'text-orange-600'}`}>
+                                                                    {config?.tokens.anthropic ? 'Подключен' : 'Токен не найден'}
+                                                                </span>
+                                                                <Info className={`h-4 w-4 ${config?.tokens.anthropic ? 'text-green-600' : 'text-orange-600'}`} style={{ marginTop: '2px' }} />
+                                                            </span>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent>
+                                                            <p>Необходимо настроить ANTHROPIC_API_KEY</p>
+                                                        </TooltipContent>
+                                                    </Tooltip>
+                                                </TooltipProvider>
+                                            )}
                                         </div>
                                     </div>
                                 </div>
