@@ -1,6 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from 'src/components/ui/card';
 import { Badge } from 'src/components/ui/badge';
-import { Loader2 } from 'lucide-react';
+import { Button } from 'src/components/ui/button';
+import { Loader2, Code, FileText } from 'lucide-react';
+import { useState } from 'react';
 import type { DecompositionBlock } from 'shared/schema';
 import { UseMutationResult } from '@tanstack/react-query';
 import { stripJiraMarkup } from '../lib/jira-markup';
@@ -16,6 +18,8 @@ export const DecompositionDisplay = ({
     blocks,
     parseMutation,
 }: DecompositionDisplayProps) => {
+    const [renderMode, setRenderMode] = useState<'html' | 'text'>('html');
+    
     // Показываем блок только если идет парсинг или есть результаты
     if (!parseMutation.isPending && blocks.length === 0) {
         return null;
@@ -28,11 +32,35 @@ export const DecompositionDisplay = ({
                     <CardTitle className="text-lg font-semibold">
                         Результат анализа декомпозиции
                     </CardTitle>
-                    {!parseMutation.isPending && blocks.length > 0 && (
-                        <Badge className="bg-green-100 text-green-800">
-                            Завершено
-                        </Badge>
-                    )}
+                    <div className="flex items-center space-x-2">
+                        {!parseMutation.isPending && blocks.length > 0 && (
+                            <div className="flex items-center space-x-2">
+                                <div className="flex bg-muted rounded-lg p-1">
+                                    <Button
+                                        variant={renderMode === 'html' ? 'default' : 'ghost'}
+                                        size="sm"
+                                        onClick={() => setRenderMode('html')}
+                                        className="px-3 py-1 text-xs"
+                                    >
+                                        <Code className="h-3 w-3 mr-1" />
+                                        HTML
+                                    </Button>
+                                    <Button
+                                        variant={renderMode === 'text' ? 'default' : 'ghost'}
+                                        size="sm"
+                                        onClick={() => setRenderMode('text')}
+                                        className="px-3 py-1 text-xs"
+                                    >
+                                        <FileText className="h-3 w-3 mr-1" />
+                                        Текст
+                                    </Button>
+                                </div>
+                                <Badge className="bg-green-100 text-green-800">
+                                    Завершено
+                                </Badge>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </CardHeader>
             <CardContent className="p-0 space-y-4">
@@ -137,7 +165,16 @@ export const DecompositionDisplay = ({
                                             </div>
                                         )}
 
-                                        <div className="text-sm text-foreground whitespace-pre-wrap" dangerouslySetInnerHTML={{__html: JiraToMd.jira_to_html(block.content)}}></div>
+                                        {renderMode === 'html' ? (
+                                            <div 
+                                                className="jira-content text-sm text-foreground"
+                                                dangerouslySetInnerHTML={{__html: JiraToMd.jira_to_html(block.content)}}
+                                            />
+                                        ) : (
+                                            <div className="text-sm text-foreground whitespace-pre-wrap">
+                                                {block.content}
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             </div>
