@@ -27,7 +27,7 @@ interface TaskForCreation {
 
 export class JiraService {
     private config: JiraConfig;
-    
+
     // Mapping JIRA estimation values to their IDs
     private estimationMapping: Record<string, string> = {
         "0": "25280",
@@ -54,7 +54,7 @@ export class JiraService {
             console.error(`[JIRA] JIRA_TOKEN: ${this.config.token ? '✓ set' : '✗ missing'}`);
             throw new Error('JIRA configuration is incomplete. Please check JIRA_HOST, JIRA_USER, and JIRA_TOKEN environment variables.');
         }
-        
+
         this.logInit();
     }
 
@@ -116,7 +116,7 @@ export class JiraService {
             'priority'
         ].join(',');
 
-        const response = await this.makeRequest(`/rest/api/2/issue/${issueKey}?fields=${fields}`);
+        const response = await this.makeRequest(`/rest/api/2/issue/${issueKey}?fields=${fields}&expand=renderedFields`);
         const data = await response.json() as JiraTask;
 
         console.log(`[JIRA] Successfully fetched issue ${issueKey}: ${data.fields?.summary || 'No summary'}`);

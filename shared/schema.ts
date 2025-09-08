@@ -28,6 +28,10 @@ export const JiraTaskSchema = z.object({
             name: z.string(),
         }).optional(),
     }),
+    renderedFields: z.object({
+        description: z.string().nullable().optional(), // Rendered decomposition
+        customfield_36836: z.string().nullable().optional(), // Rendered decomposition
+    })
 });
 
 export const DecompositionBlockSchema = z.object({
