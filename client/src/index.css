@@ -177,9 +177,16 @@
   padding-left: 24px;
 }
 
+.jira-content ul ul,
+.jira-content ul ol,
+.jira-content ol ul,
+.jira-content ol ol {
+  margin-top: 0.25em;
+}
+
 .jira-content > ul,
 .jira-content > ol {
-  padding-left: 12px;
+  padding-left: 14px;
 }
 
 .jira-content ul {
