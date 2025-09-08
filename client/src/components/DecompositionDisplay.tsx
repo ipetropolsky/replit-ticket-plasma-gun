@@ -169,6 +169,10 @@ export const DecompositionDisplay = ({
                                                         className="jira-content text-md text-foreground"
                                                         dangerouslySetInnerHTML={{__html: fixJiraLists(JiraToMd.jira_to_html(block.content.replace(/</g, '&lt;').replace(/>/g, '&gt;')))}}
                                                     />
+                                                    {(() => {
+                                                        console.log(JiraToMd.jira_to_html(block.content.replace(/</g, '&lt;').replace(/>/g, '&gt;')));
+                                                        return null;
+                                                    })()}
                                                 </div>
                                             ) : (
                                                 <div className="text-md text-foreground whitespace-pre-wrap">

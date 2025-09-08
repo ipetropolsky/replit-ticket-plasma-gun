@@ -68,14 +68,14 @@ export const fixJiraLists = (html: string): string => {
   const parser = new DOMParser();
   const document = parser.parseFromString(html, 'text/html');
 
-  // Регулярка для "второго уровня"
+  // Маркеры для вложенных списков
   const nestedMarker = /^(--|#-|-#|##)\s*/;
 
-  // проходим по всем <li>
+  // 1. Обработка вложенных <li>
   Array.from(document.querySelectorAll('li')).forEach((li) => {
     const nodes: ChildNode[] = Array.from(li.childNodes);
 
-    let nestedItems: string[] = [];
+    let nestedItems: { type: 'ul' | 'ol', text: string }[] = [];
     let hasNested = false;
 
     nodes.forEach((node) => {
@@ -84,46 +84,96 @@ export const fixJiraLists = (html: string): string => {
         const lines = text.split(/\r?\n/);
 
         lines.forEach(line => {
-          if (nestedMarker.test(line.trim())) {
+          const match = line.trim().match(nestedMarker);
+          if (match) {
             hasNested = true;
-            nestedItems.push(line.trim().replace(nestedMarker, ''));
+            const marker = match[1];
+            const type = marker.startsWith('#') ? 'ol' : 'ul';
+            nestedItems.push({ type, text: line.trim().replace(nestedMarker, '') });
           }
         });
       }
 
       if (node.nodeName === 'BR') {
         const nextText = node.nextSibling?.textContent?.trim() ?? '';
-        if (nestedMarker.test(nextText)) {
+        const match = nextText.match(nestedMarker);
+        if (match) {
           hasNested = true;
-          nestedItems.push(nextText.replace(nestedMarker, ''));
-          node.nextSibling!.textContent = ''; // убираем из исходного текста
+          const marker = match[1];
+          const type = marker.startsWith('#') ? 'ol' : 'ul';
+          nestedItems.push({ type, text: nextText.replace(nestedMarker, '') });
+          node.nextSibling!.textContent = '';
         }
       }
     });
 
-    if (hasNested) {
-      // определяем <ul> или <ol> по первому маркеру
-      const first = nestedItems[0] ?? '';
-      const isOrdered = first.startsWith('#');
-      const nestedList = document.createElement(isOrdered ? 'ol' : 'ul');
+    if (hasNested && nestedItems.length) {
+      // Группируем по типу (ul/ol)
+      let currentType = nestedItems[0].type;
+      let currentList = document.createElement(currentType);
+      let lists: HTMLElement[] = [currentList];
 
-      nestedItems.forEach(itemText => {
+      nestedItems.forEach((item, idx) => {
+        if (item.type !== currentType) {
+          currentType = item.type;
+          currentList = document.createElement(currentType);
+          lists.push(currentList);
+        }
         const liNested = document.createElement('li');
-        liNested.innerHTML = itemText;
-        nestedList.appendChild(liNested);
+        liNested.innerHTML = item.text;
+        currentList.appendChild(liNested);
       });
 
       // чистим мусор в исходном li
       li.childNodes.forEach((node: ChildNode) => {
-        if (node.nodeName === 'BR') {
-          node.remove();
-        }
+        if (node.nodeName === 'BR') node.remove();
         if (node.nodeType === window.Node.TEXT_NODE && nestedMarker.test(node.textContent?.trim() ?? '')) {
           node.textContent = '';
         }
       });
 
-      li.appendChild(nestedList);
+      // Вставляем все вложенные списки
+      lists.forEach(list => li.appendChild(list));
+    }
+  });
+
+  // 2. Обработка <p> с маркерами сразу после <ul>/<ol>
+  Array.from(document.querySelectorAll('ul,ol')).forEach(list => {
+    let next = list.nextElementSibling;
+    let lastLi = list.querySelector('li:last-child');
+    while (next && next.nodeName === 'P' && nestedMarker.test(next.textContent?.trim() ?? '')) {
+      // Собираем все подряд <p> с маркерами
+      let nestedItems: { type: 'ul' | 'ol', text: string }[] = [];
+      while (next && next.nodeName === 'P' && nestedMarker.test(next.textContent?.trim() ?? '')) {
+        const match = next.textContent!.trim().match(nestedMarker);
+        if (match) {
+          const marker = match[1];
+          const type = marker.startsWith('#') ? 'ol' : 'ul';
+          nestedItems.push({ type, text: next.textContent!.trim().replace(nestedMarker, '') });
+        }
+        const toRemove = next;
+        next = next.nextElementSibling;
+        toRemove.remove();
+      }
+      // Группируем по типу
+      if (nestedItems.length && lastLi) {
+        let currentType = nestedItems[0].type;
+        let currentList = document.createElement(currentType);
+        let lists: HTMLElement[] = [currentList];
+
+        nestedItems.forEach((item, idx) => {
+          if (item.type !== currentType) {
+            currentType = item.type;
+            currentList = document.createElement(currentType);
+            lists.push(currentList);
+          }
+          const liNested = document.createElement('li');
+          liNested.innerHTML = item.text;
+          currentList.appendChild(liNested);
+        });
+
+        lists.forEach(listEl => lastLi.appendChild(listEl));
+      }
     }
   });
 
