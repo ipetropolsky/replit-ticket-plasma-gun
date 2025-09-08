@@ -5,6 +5,7 @@ import type { DecompositionBlock } from 'shared/schema';
 import { UseMutationResult } from '@tanstack/react-query';
 import { stripJiraMarkup } from '../lib/jira-markup';
 import { getEstimationBgColor, getRepositoryCategory, getRiskBgColor } from 'src/lib/utils.ts';
+import JiraToMd from 'jira2md';
 
 interface DecompositionDisplayProps {
     blocks: DecompositionBlock[];
@@ -136,9 +137,7 @@ export const DecompositionDisplay = ({
                                             </div>
                                         )}
 
-                                        <div className="text-sm text-foreground whitespace-pre-wrap">
-                                            {block.content}
-                                        </div>
+                                        <div className="text-sm text-foreground whitespace-pre-wrap" dangerouslySetInnerHTML={{__html: JiraToMd.jira_to_html(block.content)}}></div>
                                     </div>
                                 </div>
                             </div>
