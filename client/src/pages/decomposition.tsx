@@ -34,6 +34,7 @@ export const DecompositionPage = () => {
     const [availableProviders, setAvailableProviders] = useState<ProviderInfo[]>([]);
     const [selectedProvider, setSelectedProvider] = useState<string>('regexp');
     const [showHelpModal, setShowHelpModal] = useState<boolean>(false);
+    const [isClosingModal, setIsClosingModal] = useState<boolean>(false);
     const jiraKey = currentTask?.key || parentJiraKey;
 
     const { toast } = useToast();
@@ -139,7 +140,10 @@ export const DecompositionPage = () => {
                         <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => setShowHelpModal(true)}
+                            onClick={() => {
+                                setShowHelpModal(true);
+                                setIsClosingModal(false);
+                            }}
                             className="text-muted-foreground hover:text-foreground"
                             data-testid="button-help"
                         >
@@ -294,15 +298,40 @@ export const DecompositionPage = () => {
 
             {/* Help Modal */}
             {showHelpModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                    <Card className="max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+                <div 
+                    className={`fixed inset-0 bg-black flex items-center justify-center z-50 p-4 transition-all duration-200 ease-in-out ${
+                        isClosingModal 
+                            ? 'bg-opacity-0' 
+                            : 'bg-opacity-50'
+                    }`}
+                    onClick={(e) => {
+                        if (e.target === e.currentTarget) {
+                            setIsClosingModal(true);
+                            setTimeout(() => {
+                                setShowHelpModal(false);
+                                setIsClosingModal(false);
+                            }, 200);
+                        }
+                    }}
+                >
+                    <Card className={`max-w-2xl w-full max-h-[80vh] overflow-y-auto transition-all duration-200 ease-in-out transform ${
+                        isClosingModal 
+                            ? 'scale-95 opacity-0' 
+                            : 'scale-100 opacity-100'
+                    }`}>
                         <CardHeader>
                             <div className="flex items-center justify-between">
                                 <CardTitle className="text-xl">Как пользоваться инструментом</CardTitle>
                                 <Button
                                     variant="ghost"
                                     size="sm"
-                                    onClick={() => setShowHelpModal(false)}
+                                    onClick={() => {
+                                        setIsClosingModal(true);
+                                        setTimeout(() => {
+                                            setShowHelpModal(false);
+                                            setIsClosingModal(false);
+                                        }, 200);
+                                    }}
                                     data-testid="button-close-help"
                                 >
                                     <X className="h-4 w-4" />
