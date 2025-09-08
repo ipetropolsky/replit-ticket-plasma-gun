@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, UseMutationResult } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from 'src/components/ui/card';
 import { Button } from 'src/components/ui/button';
 import { Input } from 'src/components/ui/input';
@@ -24,6 +24,7 @@ interface TaskInputFormProps {
     onRefresh: () => void;
     availableProviders?: ProviderInfo[];
     jiraHost?: string;
+    parseMutation: UseMutationResult<any, any, string, unknown>;
 }
 
 /*
@@ -40,6 +41,7 @@ export const TaskInputForm = ({
     onRefresh,
     availableProviders,
     jiraHost,
+    parseMutation,
 }: TaskInputFormProps) => {
     const [jiraInput, setJiraInput] = useState('');
     const [textInput, setTextInput] = useState('');
@@ -188,16 +190,11 @@ export const TaskInputForm = ({
                             }}
                         >
                             {fetchTaskMutation.isPending ? (
-                                <>
                                     <RefreshCw className="h-4 w-4 animate-spin" />
-                                    Загрузка...
-                                </>
                             ) : (
-                                <>
                                     <Download className="h-4 w-4" />
-                                    Загрузить из JIRA
-                                </>
                             )}
+                            Загрузить из JIRA
                         </Button>
                     </div>
                 </div>
@@ -276,7 +273,11 @@ export const TaskInputForm = ({
                                 fontSize: '16px'
                             }}
                         >
-                            <FileText className="h-4 w-4" />
+                            {parseMutation.isPending ? (
+                                <RefreshCw className="h-4 w-4 animate-spin" />
+                            ) : (
+                                <FileText className="h-4 w-4" />
+                            )}
                             Разбить на задачи
                         </Button>
                     </div>
@@ -284,7 +285,7 @@ export const TaskInputForm = ({
 
                 {currentTask && (
                     <div className="pt-4 border-t border-border">
-                        <CurrentTask currentTask={currentTask} jiraHost={props.jiraHost} />
+                        <CurrentTask currentTask={currentTask} jiraHost={jiraHost} />
                     </div>
                 )}
             </CardContent>

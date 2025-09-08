@@ -53,11 +53,11 @@ JIRA_TOKEN=your_jira_api_token
 
 # OpenAI Configuration
 OPENAI_HOST=https://api.openai.com/v1
-OPENAI_TOKEN=your_openai_api_key
+OPENAI_API_KEY=your_openai_api_key
 
-# Database Configuration
-DATABASE_URL=postgresql://postgres:postgres@db:5432/jira_decomposition
-DB_PASSWORD=secure_password_here
+# Anthropic Configuration
+OPENAI_HOST=https://api.openai.com/v1
+OPENAI_API_KEY=your_openai_api_key
 
 # Application Configuration
 NODE_ENV=production
@@ -154,7 +154,7 @@ npm run ts-check      # Проверка типов TypeScript
 
 1. Зарегистрируйтесь на [platform.openai.com](https://platform.openai.com)
 2. Создайте API ключ в разделе **API keys**
-3. Используйте его как `OPENAI_TOKEN` в `.env`
+3. Используйте его как `OPENAI_API_KEY` в `.env`
 
 ### Использование альтернативных LLM
 
@@ -163,7 +163,7 @@ npm run ts-check      # Проверка типов TypeScript
 ```env
 # Например, для локального LLM
 OPENAI_HOST=http://localhost:1234/v1
-OPENAI_TOKEN=not-needed-for-local
+OPENAI_API_KEY=your_openai_api_key
 ```
 
 ## 📖 Использование

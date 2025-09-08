@@ -202,7 +202,7 @@ export const TaskCreationPanel = ({
                 )}
                 {parentJiraTask && (
                     <div className="pt-4 border-t border-border">
-                        <CurrentTask currentTask={parentJiraTask} jiraHost={props.jiraHost} />
+                        <CurrentTask currentTask={parentJiraTask} jiraHost={jiraHost} />
                     </div>
                 )}
             </CardContent>

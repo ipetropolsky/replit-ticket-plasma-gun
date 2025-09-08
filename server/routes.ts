@@ -220,8 +220,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         try {
             const { estimationService, jiraService } = getServices();
             const estimationMapping = estimationService.getEstimationMapping();
-            const config = jiraService.getConfig();
-            
+            const jiraConfig = jiraService.getConfig();
+
             // Load repository categories
             let repositoryCategories = {};
             try {
@@ -231,19 +231,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
             } catch (err) {
                 console.warn('Could not load repository categories:', err);
             }
-            
+
             // Check token availability
             const tokens = {
                 openai: !!process.env.OPENAI_API_KEY,
                 anthropic: !!process.env.ANTHROPIC_API_KEY,
-                jira: !!process.env.JIRA_TOKEN
+                jira: !!jiraConfig.token,
             };
-            
+
             res.json({
                 success: true,
                 estimationMapping,
                 repositoryCategories,
-                jiraHost: config.host,
+                jiraHost: jiraConfig.host,
                 tokens
             });
         } catch (error: any) {

@@ -49,7 +49,7 @@ export class LLMService {
 
     constructor() {
         // Check available API keys
-        const openAIKey = process.env.OPENAI_TOKEN || process.env.OPENAI_API_KEY;
+        const openAIKey = process.env.OPENAI_API_KEY;
         const anthropicKey = process.env.ANTHROPIC_API_KEY;
 
         this.hasOpenAI = !!openAIKey;

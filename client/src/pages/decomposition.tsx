@@ -35,7 +35,6 @@ export const DecompositionPage = () => {
     const [availableProviders, setAvailableProviders] = useState<ProviderInfo[]>([]);
     const [selectedProvider, setSelectedProvider] = useState<string>('regexp');
     const [showHelpModal, setShowHelpModal] = useState<boolean>(false);
-    const [isClosingModal, setIsClosingModal] = useState<boolean>(false);
     const [config, setConfig] = useState<{
         estimationMapping: Record<string, number>;
         repositoryCategories: Record<string, any>;
@@ -201,6 +200,7 @@ export const DecompositionPage = () => {
                             onRefresh={handleRefresh}
                             availableProviders={availableProviders}
                             jiraHost={config?.jiraHost}
+                            parseMutation={parseMutation}
                         />
 
                         {decompositionText && (
@@ -280,9 +280,9 @@ export const DecompositionPage = () => {
                                                         <TooltipTrigger asChild>
                                                             <span className="inline-flex items-center space-x-1">
                                                                 <span className={`font-medium ${config?.tokens.jira ? 'text-green-600' : 'text-orange-600'}`}>
-                                                                    {config?.tokens.jira ? 'Подключен' : 'Токен не найден'}
+                                                                    {config?.tokens.jira ? 'Подключён' : 'Токен не найден'}
                                                                 </span>
-                                                                <Info className={`h-4 w-4 ${config?.tokens.jira ? 'text-green-600' : 'text-orange-600'}`} style={{ marginTop: '2px' }} />
+                                                                {!config?.tokens.jira && <Info className={`h-4 w-4 ${config?.tokens.jira ? 'text-green-600' : 'text-orange-600'}`} style={{ marginTop: '2px' }} />}
                                                             </span>
                                                         </TooltipTrigger>
                                                         <TooltipContent>
@@ -303,9 +303,9 @@ export const DecompositionPage = () => {
                                                         <TooltipTrigger asChild>
                                                             <span className="inline-flex items-center space-x-1">
                                                                 <span className={`font-medium ${config?.tokens.openai ? 'text-green-600' : 'text-orange-600'}`}>
-                                                                    {config?.tokens.openai ? 'Подключен' : 'Токен не найден'}
+                                                                    {config?.tokens.openai ? 'Подключён' : 'Токен не найден'}
                                                                 </span>
-                                                                <Info className={`h-4 w-4 ${config?.tokens.openai ? 'text-green-600' : 'text-orange-600'}`} style={{ marginTop: '2px' }} />
+                                                                {!config?.tokens.openai && <Info className={`h-4 w-4 ${config?.tokens.openai ? 'text-green-600' : 'text-orange-600'}`} />}
                                                             </span>
                                                         </TooltipTrigger>
                                                         <TooltipContent>
@@ -326,9 +326,9 @@ export const DecompositionPage = () => {
                                                         <TooltipTrigger asChild>
                                                             <span className="inline-flex items-center space-x-1">
                                                                 <span className={`font-medium ${config?.tokens.anthropic ? 'text-green-600' : 'text-orange-600'}`}>
-                                                                    {config?.tokens.anthropic ? 'Подключен' : 'Токен не найден'}
+                                                                    {config?.tokens.anthropic ? 'Подключён' : 'Токен не найден'}
                                                                 </span>
-                                                                <Info className={`h-4 w-4 ${config?.tokens.anthropic ? 'text-green-600' : 'text-orange-600'}`} style={{ marginTop: '2px' }} />
+                                                                {!config?.tokens.anthropic && <Info className={`h-4 w-4 ${config?.tokens.anthropic ? 'text-green-600' : 'text-orange-600'}`} />}
                                                             </span>
                                                         </TooltipTrigger>
                                                         <TooltipContent>
