@@ -10,6 +10,7 @@ import { stripJiraMarkup } from '../lib/jira-markup';
 import type { DecompositionBlock, JiraTask, TaskCreationResponse } from 'shared/schema';
 import { Estimation } from 'shared/types.ts';
 import { CurrentTask } from 'src/components/CurrentTask.tsx';
+import { getEstimationBgColor, getRepositoryCategory } from 'src/lib/utils.ts';
 
 interface TaskCreationPanelProps {
     sessionId: string;
@@ -96,13 +97,25 @@ export const TaskCreationPanel = ({
             </CardHeader>
             <CardContent className="p-0 space-y-6">
                 <div className="p-0 space-y-2">
-                    {tasks.map((task, index) => (
-                        <div key={index} className="font-medium">
-                            {'— '}
-                            {task.taskInfo?.estimation && `${task.taskInfo.estimation} `}
-                            {getTaskSummary(task)}
-                        </div>
-                    ))}
+                    {tasks.map((task, index) => {
+                        const category = getRepositoryCategory(task.taskInfo?.repository || null);
+                        return (
+                            <div key={index} className="font-medium space-x-2">
+                                <span
+                                    className={`${getEstimationBgColor(task.taskInfo?.estimation || null)} text-black px-1 py-0 rounded text-md text-center w-8 inline-block border-gray-200 border`}>
+                                    {task.taskInfo?.estimation || '?'}
+                                </span>
+                                <Badge
+                                    className={`text-sm ${category.bg} ${category.text} border-0`}
+                                >
+                                    {category.label}
+                                </Badge>
+                                <span>
+                                    {getTaskSummary(task)}
+                                </span>
+                            </div>
+                        );
+                    })}
                 </div>
                 {/* Action Buttons */}
                 <div className="space-y-2">

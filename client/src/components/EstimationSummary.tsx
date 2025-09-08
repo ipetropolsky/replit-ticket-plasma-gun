@@ -120,18 +120,16 @@ export const EstimationSummary = ({
                             {estimation.formula}
                         </div>
                     </div>
-                    {estimation.risks > 0 && (
-                        <div>
-                            <div className="text-sm text-muted-foreground mb-2">Риски:</div>
-                            <div
-                                className="bg-muted p-3 rounded text-sm font-mono"
-                                style={{ borderRadius: '8px' }}
-                                data-testid="risk-formula"
-                            >
-                                {estimation.riskFormula}
-                            </div>
+                    <div>
+                        <div className="text-sm text-muted-foreground mb-2">Риски:</div>
+                        <div
+                            className="bg-muted p-3 rounded text-sm font-mono"
+                            style={{ borderRadius: '8px' }}
+                            data-testid="risk-formula"
+                        >
+                            {estimation.riskFormula}
                         </div>
-                    )}
+                    </div>
                 </div>
 
                 {/* Additional Risks and Parallelization Configuration - Side by Side */}
@@ -139,13 +137,10 @@ export const EstimationSummary = ({
                     {/* Дополнительные риски */}
                     <Card className="border border-border">
                         <CardHeader className="pb-3">
-                            <CardTitle className="text-base font-medium">Дополнительные риски</CardTitle>
+                            <CardTitle className="text-base">Дополнительные риски</CardTitle>
                         </CardHeader>
                         <CardContent className="pt-0">
-                            <div className="flex items-center space-x-4">
-                                <Label className="text-sm text-muted-foreground whitespace-nowrap">
-                                    Процент от общей оценки:
-                                </Label>
+                            <div className="flex items-center space-x-2">
                                 <Input
                                     type="number"
                                     className="w-20 text-center"
@@ -159,10 +154,12 @@ export const EstimationSummary = ({
                                     }}
                                     data-testid="input-additional-risk-percent"
                                 />
-                                <span className="text-sm text-muted-foreground">%</span>
+                                <span className="text-md text-muted-foreground">% = {additionalRisks} SP</span>
+                            </div>
+                            <div className="text-sm text-muted-foreground whitespace-nowrap mt-2">
+                                Процент от общей оценки
                             </div>
                             <div className="text-sm font-medium text-foreground mt-3">
-                                = {additionalRisks} SP
                             </div>
                         </CardContent>
                     </Card>
@@ -170,11 +167,11 @@ export const EstimationSummary = ({
                     {/* Распараллеливание */}
                     <Card className="border border-border">
                         <CardHeader className="pb-3">
-                            <CardTitle className="text-base font-medium">Распараллеливание</CardTitle>
+                            <CardTitle className="text-base">Распараллеливание</CardTitle>
                         </CardHeader>
                         <CardContent className="pt-0">
                             <div className="flex items-center space-x-4">
-                                <Label className="text-sm text-muted-foreground whitespace-nowrap">
+                                <Label className="text-md text-muted-foreground whitespace-nowrap">
                                     Коэффициент:
                                 </Label>
                                 <Input
@@ -192,7 +189,7 @@ export const EstimationSummary = ({
                                     data-testid="input-parallelization-coefficient"
                                 />
                             </div>
-                            <div className="text-xs text-muted-foreground mt-3">
+                            <div className="text-sm text-muted-foreground mt-2">
                                 Ускорение от работы в несколько рук
                             </div>
                         </CardContent>
@@ -204,7 +201,7 @@ export const EstimationSummary = ({
                     {/* Total with Risks Card */}
                     <Card className="border border-border">
                         <CardHeader className="pb-3">
-                            <CardTitle className="text-base font-medium">Итого с рисками</CardTitle>
+                            <CardTitle className="text-base">Итого с рисками</CardTitle>
                         </CardHeader>
                         <CardContent className="pt-0">
                             <div className="text-left">
@@ -224,7 +221,7 @@ export const EstimationSummary = ({
                     {/* Delivery Date Card */}
                     <Card className="border border-border">
                         <CardHeader className="pb-3">
-                            <CardTitle className="text-base font-medium">Дата поставки</CardTitle>
+                            <CardTitle className="text-base">Дата поставки</CardTitle>
                         </CardHeader>
                         <CardContent className="pt-0">
                             <div className="text-left">
