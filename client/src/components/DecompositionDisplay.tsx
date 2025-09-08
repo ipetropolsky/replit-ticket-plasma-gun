@@ -5,7 +5,7 @@ import { useState } from 'react';
 import type { DecompositionBlock } from 'shared/schema';
 import { UseMutationResult } from '@tanstack/react-query';
 import { stripJiraMarkup } from 'src/lib/jira-markup';
-import { getEstimationBgColor, getRepositoryCategory, getRiskBgColor } from 'src/lib/utils.ts';
+import { getEstimationBgColor, getRepositoryCategory, getRiskBgColor, fixJiraLists } from 'src/lib/utils.ts';
 // @ts-ignore TS7016
 import JiraToMd from 'jira2md';
 import { Segmented } from './ui/segmented';
@@ -167,7 +167,7 @@ export const DecompositionDisplay = ({
                                                 <div>
                                                     <div
                                                         className="jira-content text-md text-foreground"
-                                                        dangerouslySetInnerHTML={{__html: JiraToMd.jira_to_html(block.content.replace(/</g, '&lt;').replace(/>/g, '&gt;'))}}
+                                                        dangerouslySetInnerHTML={{__html: fixJiraLists(JiraToMd.jira_to_html(block.content.replace(/</g, '&lt;').replace(/>/g, '&gt;')))}}
                                                     />
                                                 </div>
                                             ) : (

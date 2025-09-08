@@ -63,3 +63,69 @@ export const repositoryCategories = {
     text: 'text-white'
   }
 };
+
+export const fixJiraLists = (html: string): string => {
+  const parser = new DOMParser();
+  const document = parser.parseFromString(html, 'text/html');
+
+  // Регулярка для "второго уровня"
+  const nestedMarker = /^(--|#-|-#|##)\s*/;
+
+  // проходим по всем <li>
+  Array.from(document.querySelectorAll('li')).forEach((li) => {
+    const nodes: ChildNode[] = Array.from(li.childNodes);
+
+    let nestedItems: string[] = [];
+    let hasNested = false;
+
+    nodes.forEach((node) => {
+      if (node.nodeType === window.Node.TEXT_NODE) {
+        const text = node.textContent ?? '';
+        const lines = text.split(/\r?\n/);
+
+        lines.forEach(line => {
+          if (nestedMarker.test(line.trim())) {
+            hasNested = true;
+            nestedItems.push(line.trim().replace(nestedMarker, ''));
+          }
+        });
+      }
+
+      if (node.nodeName === 'BR') {
+        const nextText = node.nextSibling?.textContent?.trim() ?? '';
+        if (nestedMarker.test(nextText)) {
+          hasNested = true;
+          nestedItems.push(nextText.replace(nestedMarker, ''));
+          node.nextSibling!.textContent = ''; // убираем из исходного текста
+        }
+      }
+    });
+
+    if (hasNested) {
+      // определяем <ul> или <ol> по первому маркеру
+      const first = nestedItems[0] ?? '';
+      const isOrdered = first.startsWith('#');
+      const nestedList = document.createElement(isOrdered ? 'ol' : 'ul');
+
+      nestedItems.forEach(itemText => {
+        const liNested = document.createElement('li');
+        liNested.innerHTML = itemText;
+        nestedList.appendChild(liNested);
+      });
+
+      // чистим мусор в исходном li
+      li.childNodes.forEach((node: ChildNode) => {
+        if (node.nodeName === 'BR') {
+          node.remove();
+        }
+        if (node.nodeType === window.Node.TEXT_NODE && nestedMarker.test(node.textContent?.trim() ?? '')) {
+          node.textContent = '';
+        }
+      });
+
+      li.appendChild(nestedList);
+    }
+  });
+
+  return document.body.innerHTML;
+}
