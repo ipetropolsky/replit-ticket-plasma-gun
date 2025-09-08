@@ -31,14 +31,7 @@ app.use((req, res, next) => {
         logLine = logLine.slice(0, 79) + "…";
       }
 
-      if (app.get("env") === "development") {
-        // Dynamic import log function only in development
-        import("./vite").then(({ log }) => {
-          log(logLine);
-        });
-      } else {
-        console.log(logLine);
-      }
+      console.log(logLine);
     }
   });
 
@@ -56,13 +49,24 @@ app.use((req, res, next) => {
     throw err;
   });
 
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
-  if (app.get("env") === "development") {
-    const { setupVite } = await import("./vite");
-    await setupVite(app, server);
-  } else {
+  // Setup static file serving for production
+  const isProduction = process.env.NODE_ENV === "production";
+  let viteSetupSuccessful = false;
+  
+  if (!isProduction) {
+    // Try to setup vite in development
+    try {
+      const { setupVite } = await import("./vite");
+      await setupVite(app, server);
+      viteSetupSuccessful = true;
+      console.log("Vite development server setup completed");
+    } catch (error) {
+      console.warn("Could not setup vite, serving static files:", error.message);
+    }
+  }
+  
+  // Setup static file serving if vite failed or in production
+  if (isProduction || !viteSetupSuccessful) {
     // Production: serve static files without vite dependency
     const distPath = path.resolve(import.meta.dirname, "public");
     
