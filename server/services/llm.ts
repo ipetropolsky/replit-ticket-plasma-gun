@@ -185,8 +185,8 @@ export class LLMService {
         let i = 0;
         let currentHeaderLevel = 0; // Track current task header level
 
-        // Universal task pattern based on provided regex
-        const taskPattern = /^(\*|h[1-6]\. )?(\S+ )?\[([a-z]+(?:[.-][a-z]+)*)\] (.+)\*?$/i;
+        // Universal task pattern - поддерживаем задачи в списках типа * *[backend] Task name*
+        const taskPattern = /^(\*|h[1-6]\. )?\s*\*?(\S+ )?\[([a-z]+(?:[.-][a-z]+)*)\]\s*(.+?)\*?\s*\*?$/i;
         const headingPattern = /^h([1-6])\.\s(.+)$/;
 
         while (i < lines.length) {
@@ -331,7 +331,19 @@ export class LLMService {
 
         const cleanEstimation = rawEstimation.trim().toUpperCase();
 
-        // Check for risk indicator (+)
+        // Check for patterns like M+S (estimation + risk)
+        const combinedMatch = cleanEstimation.match(/^(XS|S|M|L|XL)\+(XS|S|M|L|XL)$/);
+        if (combinedMatch) {
+            const [, baseEstimation, riskEstimation] = combinedMatch;
+            return {
+                estimation: baseEstimation,
+                risk: riskEstimation,
+                estimationSP: this.getEstimationSP(baseEstimation),
+                riskSP: this.getEstimationSP(riskEstimation)
+            };
+        }
+
+        // Check for simple risk indicator like M+ (defaults to XS risk)
         const hasRisk = cleanEstimation.endsWith('+');
         const baseEstimation = hasRisk ? cleanEstimation.slice(0, -1) : cleanEstimation;
 

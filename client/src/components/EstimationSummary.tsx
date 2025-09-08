@@ -134,58 +134,69 @@ export const EstimationSummary = ({
                     )}
                 </div>
 
-                {/* Additional Risks and Parallelization Configuration */}
-                <div
-                    className="border border-border rounded-lg p-4"
-                    style={{ borderRadius: '12px' }}
-                >
-                    <h3 className="font-medium text-foreground mb-3">Дополнительные риски</h3>
-                    <div className="flex items-center space-x-4 mb-4">
-                        <Label className="text-sm text-muted-foreground whitespace-nowrap">
-                            Процент от общей оценки:
-                        </Label>
-                        <Input
-                            type="number"
-                            className="w-20 text-center"
-                            value={additionalRiskPercent}
-                            min={0}
-                            max={100}
-                            onChange={(e) => onAdditionalRiskChange(parseInt(e.target.value) || 0)}
-                            style={{
-                                borderRadius: '12px',
-                                fontSize: '16px'
-                            }}
-                            data-testid="input-additional-risk-percent"
-                        />
-                        <span className="text-sm text-muted-foreground">%</span>
-                        <span className="text-sm font-medium text-foreground ml-4">
-                            = {additionalRisks} SP
-                        </span>
-                    </div>
+                {/* Additional Risks and Parallelization Configuration - Side by Side */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Дополнительные риски */}
+                    <Card className="border border-border">
+                        <CardHeader className="pb-3">
+                            <CardTitle className="text-base font-medium">Дополнительные риски</CardTitle>
+                        </CardHeader>
+                        <CardContent className="pt-0">
+                            <div className="flex items-center space-x-4">
+                                <Label className="text-sm text-muted-foreground whitespace-nowrap">
+                                    Процент от общей оценки:
+                                </Label>
+                                <Input
+                                    type="number"
+                                    className="w-20 text-center"
+                                    value={additionalRiskPercent}
+                                    min={0}
+                                    max={100}
+                                    onChange={(e) => onAdditionalRiskChange(parseInt(e.target.value) || 0)}
+                                    style={{
+                                        borderRadius: '12px',
+                                        fontSize: '16px'
+                                    }}
+                                    data-testid="input-additional-risk-percent"
+                                />
+                                <span className="text-sm text-muted-foreground">%</span>
+                            </div>
+                            <div className="text-sm font-medium text-foreground mt-3">
+                                = {additionalRisks} SP
+                            </div>
+                        </CardContent>
+                    </Card>
 
-                    <h3 className="font-medium text-foreground mb-3">Распараллеливание</h3>
-                    <div className="flex items-center space-x-4">
-                        <Label className="text-sm text-muted-foreground whitespace-nowrap">
-                            Коэффициент:
-                        </Label>
-                        <Input
-                            type="number"
-                            className="w-20 text-center"
-                            value={parallelizationCoefficient}
-                            min={0.1}
-                            max={10}
-                            step={0.1}
-                            onChange={(e) => onParallelizationCoefficientChange(parseFloat(e.target.value) || 1.0)}
-                            style={{
-                                borderRadius: '12px',
-                                fontSize: '16px'
-                            }}
-                            data-testid="input-parallelization-coefficient"
-                        />
-                        <span className="text-xs text-muted-foreground ml-4">
-                            Ускорение от работы в несколько рук
-                        </span>
-                    </div>
+                    {/* Распараллеливание */}
+                    <Card className="border border-border">
+                        <CardHeader className="pb-3">
+                            <CardTitle className="text-base font-medium">Распараллеливание</CardTitle>
+                        </CardHeader>
+                        <CardContent className="pt-0">
+                            <div className="flex items-center space-x-4">
+                                <Label className="text-sm text-muted-foreground whitespace-nowrap">
+                                    Коэффициент:
+                                </Label>
+                                <Input
+                                    type="number"
+                                    className="w-20 text-center"
+                                    value={parallelizationCoefficient}
+                                    min={0.1}
+                                    max={10}
+                                    step={0.1}
+                                    onChange={(e) => onParallelizationCoefficientChange(parseFloat(e.target.value) || 1.0)}
+                                    style={{
+                                        borderRadius: '12px',
+                                        fontSize: '16px'
+                                    }}
+                                    data-testid="input-parallelization-coefficient"
+                                />
+                            </div>
+                            <div className="text-xs text-muted-foreground mt-3">
+                                Ускорение от работы в несколько рук
+                            </div>
+                        </CardContent>
+                    </Card>
                 </div>
 
                 {/* Total and Delivery Date - Side by Side */}
