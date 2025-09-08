@@ -143,7 +143,7 @@
 
 /* JIRA Content Styles */
 .jira-content {
-  line-height: 1.6;
+  line-height: 24px;
 }
 
 /* Headings */
@@ -154,7 +154,7 @@
 .jira-content h5,
 .jira-content h6 {
   font-weight: 600;
-  margin: 1em 0 0.5em 0;
+  margin: 0.5em 0;
   line-height: 1.2;
 }
 
@@ -167,14 +167,19 @@
 
 /* Paragraphs */
 .jira-content p {
-  margin: 0.5em 0;
+  margin: 0.5em 0 0 0;
 }
 
 /* Lists */
 .jira-content ul,
 .jira-content ol {
-  margin: 0.5em 0;
-  padding-left: 2em;
+  margin: 0.5em 0 0 0;
+  padding-left: 24px;
+}
+
+.jira-content > ul,
+.jira-content > ol {
+  padding-left: 12px;
 }
 
 .jira-content ul {
@@ -321,4 +326,25 @@
 
 .jira-content .panel-body {
   padding: 15px;
+}
+
+.jira-content > p:first-child,
+.jira-content > ul:first-child,
+.jira-content > ol:first-child,
+.jira-content > pre:first-child,
+.jira-content > blockquote:first-child,
+.jira-content > table:first-child,
+.jira-content > .panel:first-child {
+    margin-top: 0;
+}
+
+.jira-content > ul:last-child,
+.jira-content > ol:last-child,
+.jira-content > pre:last-child,
+.jira-content > p:last-child,
+.jira-content > blockquote:last-child,
+.jira-content > table:last-child,
+.jira-content > .panel:last-child
+{
+  margin-bottom: 0;
 }

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useMutation, UseMutationResult } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from 'src/components/ui/card';
 import { Button } from 'src/components/ui/button';
@@ -10,6 +10,7 @@ import { useToast } from 'src/hooks/use-toast';
 import { api } from 'src/lib/api';
 import type { JiraTask } from 'shared/schema';
 import { CurrentTask } from 'src/components/CurrentTask.tsx';
+import { Segmented, SegmentedVariants } from 'src/components/ui/segmented.tsx';
 
 type LLMProvider = 'openai' | 'anthropic' | 'regexp';
 export interface ProviderInfo {
@@ -134,6 +135,12 @@ export const TaskInputForm = ({
         }
     };
 
+    const llmProviders: LLMProvider[] = ['openai', 'anthropic', 'regexp'];
+    const llmVariants = useMemo<SegmentedVariants<LLMProvider>>(() => llmProviders.map((provider) => ({
+        value: provider,
+        label: getProviderLabel(provider),
+    })), []);
+
     return (
         <Card style={{ borderRadius: '24px', padding: '24px' }}>
             <CardHeader className="p-0 mb-6">
@@ -225,39 +232,7 @@ export const TaskInputForm = ({
                         {/* Provider Selection */}
                         <div className="flex items-center gap-2">
                             <span className="text-sm text-muted-foreground">Анализатор:</span>
-                            <div className="flex border p-1" style={{ backgroundColor: '#f8f9fa', borderRadius: '12px' }}>
-                                {['openai', 'anthropic', 'regexp'].map((provider) => {
-                                    const providerTyped = provider as LLMProvider;
-                                    const isAvailable = availableProviders?.find(p => p.name === provider)?.available ?? (provider === 'regexp');
-                                    const isSelected = selectedProvider === provider;
-
-                                    return (
-                                        <Button
-                                            key={provider}
-                                            variant="ghost"
-                                            size="sm"
-                                            disabled={!isAvailable}
-                                            onClick={() => handleProviderChange(providerTyped)}
-                                            className={`h-8 px-3 text-xs ${
-                                                isSelected 
-                                                    ? 'bg-white shadow-sm' 
-                                                    : 'hover:bg-white/50'
-                                            }`}
-                                            style={{
-                                                borderRadius: '8px',
-                                                fontSize: '14px',
-                                                ...(isSelected ? {
-                                                    backgroundColor: '#ffffff',
-                                                    color: '#0070ff',
-                                                    boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)'
-                                                } : {})
-                                            }}
-                                        >
-                                            {getProviderLabel(providerTyped)}
-                                        </Button>
-                                    );
-                                })}
-                            </div>
+                            <Segmented variants={llmVariants} value={selectedProvider} onChange={handleProviderChange} />
                         </div>
 
                         {/* Submit Button */}

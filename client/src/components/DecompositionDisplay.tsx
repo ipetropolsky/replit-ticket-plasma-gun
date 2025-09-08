@@ -1,64 +1,57 @@
 import { Card, CardContent, CardHeader, CardTitle } from 'src/components/ui/card';
 import { Badge } from 'src/components/ui/badge';
-import { Button } from 'src/components/ui/button';
-import { Loader2, Code, FileText } from 'lucide-react';
+import { Loader2, CheckCircle } from 'lucide-react';
 import { useState } from 'react';
 import type { DecompositionBlock } from 'shared/schema';
 import { UseMutationResult } from '@tanstack/react-query';
-import { stripJiraMarkup } from '../lib/jira-markup';
+import { stripJiraMarkup } from 'src/lib/jira-markup';
 import { getEstimationBgColor, getRepositoryCategory, getRiskBgColor } from 'src/lib/utils.ts';
+// @ts-ignore TS7016
 import JiraToMd from 'jira2md';
+import { Segmented } from './ui/segmented';
 
 interface DecompositionDisplayProps {
     blocks: DecompositionBlock[];
     parseMutation: UseMutationResult<any, any, string, unknown>;
 }
 
+type RenderingMode = 'html' | 'text';
+
 export const DecompositionDisplay = ({
     blocks,
     parseMutation,
 }: DecompositionDisplayProps) => {
-    const [renderMode, setRenderMode] = useState<'html' | 'text'>('html');
-    
+    const [renderMode, setRenderMode] = useState<RenderingMode>('html');
+
     // Показываем блок только если идет парсинг или есть результаты
     if (!parseMutation.isPending && blocks.length === 0) {
         return null;
     }
 
+    const renderingModes: RenderingMode[] = ['html', 'text'];
+    const renderingVariants = renderingModes.map((value) => ({
+        value,
+        label: value,
+    }))
+
     return (
         <Card style={{ borderRadius: '24px', padding: '24px' }}>
             <CardHeader className="p-0 mb-4">
                 <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg font-semibold">
-                        Результат анализа декомпозиции
+                    <CardTitle className="text-lg font-semibold flex space-x-2">
+                        {blocks.length > 0 && (
+                            parseMutation.isPending
+                                ? <Loader2 className="w-5 h-5 animate-spin text-blue-400 mt-1" />
+                                : <CheckCircle className="w-5 h-5 text-green-600 mt-1" />
+
+                        )}
+                        <span>
+                            Результат анализа декомпозиции
+                        </span>
                     </CardTitle>
                     <div className="flex items-center space-x-2">
                         {!parseMutation.isPending && blocks.length > 0 && (
-                            <div className="flex items-center space-x-2">
-                                <div className="flex bg-muted rounded-lg p-1">
-                                    <Button
-                                        variant={renderMode === 'html' ? 'default' : 'ghost'}
-                                        size="sm"
-                                        onClick={() => setRenderMode('html')}
-                                        className="px-3 py-1 text-xs"
-                                    >
-                                        <Code className="h-3 w-3 mr-1" />
-                                        HTML
-                                    </Button>
-                                    <Button
-                                        variant={renderMode === 'text' ? 'default' : 'ghost'}
-                                        size="sm"
-                                        onClick={() => setRenderMode('text')}
-                                        className="px-3 py-1 text-xs"
-                                    >
-                                        <FileText className="h-3 w-3 mr-1" />
-                                        Текст
-                                    </Button>
-                                </div>
-                                <Badge className="bg-green-100 text-green-800">
-                                    Завершено
-                                </Badge>
-                            </div>
+                            <Segmented variants={renderingVariants} value={renderMode} onChange={setRenderMode}/>
                         )}
                     </div>
                 </div>
@@ -94,28 +87,31 @@ export const DecompositionDisplay = ({
                                 <div className="flex items-start justify-between">
                                     <div className="flex-1">
                                         <div className="flex items-center space-x-3 mb-3">
-                                            {block.type === 'task' ? (
-                                                <>
-                                                    {(() => {
-                                                        const category = getRepositoryCategory(block.taskInfo?.repository || null);
-                                                        return (
-                                                            <Badge
-                                                                className={`text-sm ${category.bg} ${category.text} border-0`}
-                                                            >
-                                                                {category.label}
-                                                            </Badge>
-                                                        );
-                                                    })()}
-                                                    {block.taskInfo && (
-                                                        <span className="text-base font-semibold text-foreground">
-                                                            {stripJiraMarkup(block.taskInfo.title)}
-                                                        </span>
-                                                    )}
-                                                </>
-                                            ) : (
-                                                <Badge className="text-xs bg-gray-100 text-gray-600 border-0">
-                                                    Текст
-                                                </Badge>
+                                            <span className="space-x-1">
+                                                <a id={`block-${index + 1}`} href={`#block-${index + 1}`} className="text-primary hover:underline font-semibold">#{index + 1}</a>
+                                                {block.type === 'task' ? (
+                                                    <>
+                                                        {(() => {
+                                                            const category = getRepositoryCategory(block.taskInfo?.repository || null);
+                                                            return (
+                                                                <Badge
+                                                                    className={`text-sm ${category.bg} ${category.text} border-0`}
+                                                                >
+                                                                    {category.label}
+                                                                </Badge>
+                                                            );
+                                                        })()}
+                                                    </>
+                                                ) : (
+                                                    <Badge className="text-xs bg-gray-100 text-gray-600 border-0">
+                                                        Текст
+                                                    </Badge>
+                                                )}
+                                            </span>
+                                            {block.type === 'task' && block.taskInfo && (
+                                                <span className="text-base font-semibold text-foreground">
+                                                    {stripJiraMarkup(block.taskInfo.title)}
+                                                </span>
                                             )}
                                         </div>
 
@@ -165,16 +161,21 @@ export const DecompositionDisplay = ({
                                             </div>
                                         )}
 
-                                        {renderMode === 'html' ? (
-                                            <div 
-                                                className="jira-content text-sm text-foreground"
-                                                dangerouslySetInnerHTML={{__html: JiraToMd.jira_to_html(block.content)}}
-                                            />
-                                        ) : (
-                                            <div className="text-sm text-foreground whitespace-pre-wrap">
-                                                {block.content}
-                                            </div>
-                                        )}
+                                        {block.type !== 'text' && <div className="font-semibold mb-1">Описание задачи:</div>}
+                                        <div className="border-l-4 px-4 py-2 bg-gray-50">
+                                            {renderMode === 'html' ? (
+                                                <div>
+                                                    <div
+                                                        className="jira-content text-md text-foreground"
+                                                        dangerouslySetInnerHTML={{__html: JiraToMd.jira_to_html(block.content.replace(/</g, '&lt;').replace(/>/g, '&gt;'))}}
+                                                    />
+                                                </div>
+                                            ) : (
+                                                <div className="text-md text-foreground whitespace-pre-wrap">
+                                                    {block.content}
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
