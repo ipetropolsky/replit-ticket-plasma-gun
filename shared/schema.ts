@@ -10,10 +10,7 @@ export const JiraTaskSchema = z.object({
         customfield_36836: z.string().nullable().optional(), // Декомпозиция
         customfield_24213: z.string().nullable().optional(), // Ссылки на макеты
         customfield_23613: z.string().nullable().optional(), // Оценка в майках PORTFOLIO
-        customfield_23911: z.union([
-            z.string(),
-            z.object({ id: z.string() })
-        ]).nullable().optional(), // Оценка в майках HH
+        customfield_23911: z.object({ id: z.string() }).nullable().optional(), // Оценка в майках HH
         customfield_11212: z.number().nullable().optional(), // Story Points
         project: z.object({
             key: z.string(),
@@ -52,12 +49,10 @@ export const CreateTaskRequestSchema = z.object({
     sessionId: z.string(),
     additionalRiskPercent: z.number().min(0).max(100),
     tasks: z.array(z.object({
-        title: z.string(),
-        content: z.string(),
+        summary: z.string(),
+        description: z.string(),
         estimation: z.string().optional(),
         storyPoints: z.number().optional(),
-        summary: z.string().optional(),
-        description: z.string().optional(),
     })),
     parentJiraKey: z.string().optional(),
 });

@@ -9,6 +9,7 @@ import { RefreshCw, Download, FileText, Link } from 'lucide-react';
 import { useToast } from 'src/hooks/use-toast';
 import { api } from 'src/lib/api';
 import type { JiraTask } from 'shared/schema';
+import { CurrentTask } from 'src/components/CurrentTask.tsx';
 
 type LLMProvider = 'openai' | 'anthropic' | 'regexp';
 export interface ProviderInfo {
@@ -17,12 +18,19 @@ export interface ProviderInfo {
 }
 
 interface TaskInputFormProps {
-    onTaskLoaded: (task: JiraTask, decompositionText: string) => void;
+    onTaskLoaded: (task: JiraTask, decompositionText?: string) => void;
     onTextProvided: (decompositionText: string, parentJiraKey?: string, provider?: LLMProvider) => void;
     currentTask: JiraTask | null;
     onRefresh: () => void;
     availableProviders?: ProviderInfo[];
 }
+
+/*
+const extractJiraKey = (url: string): string | null => {
+    const match = url.match(/[A-Z][A-Z0-9_]+-\d+/);
+    return match ? match[0] : null;
+}
+*/
 
 export const TaskInputForm = ({
     onTaskLoaded,
@@ -35,17 +43,40 @@ export const TaskInputForm = ({
     const [textInput, setTextInput] = useState('');
     const [selectedProvider, setSelectedProvider] = useState<LLMProvider>('regexp');
     const { toast } = useToast();
-    const currentTaskUrl = currentTask ? `https://jira.hh.ru/browse/${currentTask.key}` : null;
 
     const fetchTaskMutation = useMutation({
         mutationFn: (input: string) => api.fetchJiraTask(input),
         onSuccess: (data) => {
             if (data.success) {
-                onTaskLoaded(data.task, data.decompositionText);
-                setTextInput(data.decompositionText); // Заполняем textarea
+                let useJiraField = false;
+                let additionalInfo = '';
+                const jiraField = data.decompositionText?.trim() || '';
+                const currentField = textInput.trim();
+                // Проверяем, есть ли текст в textarea
+                if (currentField && currentField !== jiraField) {
+                    const confirmed = window.confirm(
+                        'Заменить имеющийся текст на содержимое поля «Декомпозиция» из JIRA?'
+                    );
+                    if (confirmed) {
+                        useJiraField = true;
+                    } else {
+                        additionalInfo = ', текст декомпозиции сохранён 🙌';
+                    }
+                } else {
+                    useJiraField = true;
+                }
+
+                if (useJiraField) {
+                    onTaskLoaded(data.task, data.decompositionText);
+                    setTextInput(data.decompositionText); // Заполняем textarea
+                    additionalInfo = jiraField ? ' и поле «Декомпозиция» ✏️' : ', поле «Декомпозиция» пусто 🧐';
+                } else {
+                    onTaskLoaded(data.task);
+                }
+
                 toast({
                     title: 'Задача загружена',
-                    description: `Успешно загружена задача ${data.task.key}${data.decompositionText ? '' : ', но поле «Декомпозиция» пусто 🧐'}`,
+                    description: `Успешно загружена задача ${data.task.key}${additionalInfo}`,
                 });
             }
         },
@@ -68,16 +99,6 @@ export const TaskInputForm = ({
                 description: 'Введите ключ задачи или ссылку на JIRA',
             });
             return;
-        }
-
-        // Проверяем, есть ли текст в textarea
-        if (textInput.trim()) {
-            const confirmed = window.confirm(
-                'В поле ввода уже есть текст. Он будет заменён на содержимое поля "Декомпозиция" из JIRA. Продолжить?'
-            );
-            if (!confirmed) {
-                return;
-            }
         }
 
         fetchTaskMutation.mutate(jiraInput.trim());
@@ -114,7 +135,7 @@ export const TaskInputForm = ({
             <CardHeader className="p-0 mb-6">
                 <div className="flex items-center justify-between">
                     <CardTitle className="text-lg leading-8 font-semibold">
-                        Источник декомпозиции
+                        Декомпозиция портфеля
                     </CardTitle>
                     {currentTask && (
                         <Button
@@ -137,12 +158,13 @@ export const TaskInputForm = ({
             <CardContent className="p-0 space-y-6">
                 {/* JIRA Input Section */}
                 <div className="space-y-3">
-                    <Label htmlFor="jira-input">Загрузка из JIRA</Label>
                     <div className="flex gap-3">
                         <Input
                             id="jira-input"
                             value={jiraInput}
-                            onChange={(e) => setJiraInput(e.target.value)}
+                            onChange={(e) => {
+                                setJiraInput(e.target.value);
+                            }}
                             placeholder="PORTFOLIO-12345 или ссылка на JIRA"
                             className="flex-1"
                             style={{
@@ -258,29 +280,9 @@ export const TaskInputForm = ({
                     </div>
                 </div>
 
-                {/* Current Task Display */}
-                {currentTask && currentTaskUrl && (
+                {currentTask && (
                     <div className="pt-4 border-t border-border">
-                        <div className="flex items-center gap-3">
-                            <a
-                                href={currentTaskUrl}
-                            >
-                                <Link className="h-4 w-4 text-muted-foreground" />
-                            </a>
-                            <div>
-                                <div className="font-medium">
-                                    <a
-                                        href={currentTaskUrl}
-                                        className="hover:text-primary hover:underline"
-                                    >
-                                        {currentTask.key}: {currentTask.fields.summary || 'Неизвестно'}
-                                    </a>
-                                </div>
-                                <div className="text-sm text-muted-foreground">
-                                    {currentTask.fields.assignee?.displayName || 'Исполнитель неизвестен'} • {currentTask.fields.status?.name || 'Статус неизвестен'}
-                                </div>
-                            </div>
-                        </div>
+                        <CurrentTask currentTask={currentTask} />
                     </div>
                 )}
             </CardContent>

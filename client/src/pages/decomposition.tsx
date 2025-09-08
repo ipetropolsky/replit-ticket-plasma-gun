@@ -66,22 +66,22 @@ export const DecompositionPage = () => {
         parseMutation.mutate(text);
     };
 
-    const handleTaskLoaded = (task: JiraTask, text: string) => {
+    const handleTaskLoaded = (task: JiraTask, text?: string) => {
         // Reset parsing results FIRST
-        setBlocks([]);
-        setEstimation(null);
-        setSessionId('');
+        if (typeof text === 'string') {
+            setDecompositionText(text);
+            setBlocks([]);
+            setEstimation(null);
+            setSessionId('');
+        }
 
         // Then set new data
         setCurrentTask(task);
-        setDecompositionText(text);
         setParentJiraKey(task.key);
     };
 
     const handleTextProvided = (text: string, parentKey?: string, provider?: string) => {
-        // НЕ сбрасываем currentTask - пусть блок "Источник" остается
         setDecompositionText(text);
-        setParentJiraKey(parentKey || ''); // Optional parent key
         if (provider) {
             setSelectedProvider(provider);
         }
@@ -171,7 +171,7 @@ export const DecompositionPage = () => {
                                 estimation={estimation}
                                 additionalRiskPercent={additionalRiskPercent}
                                 blocks={blocks}
-                                parentJiraKey={parentJiraKey}
+                                parentJiraTask={currentTask}
                             />
                         )}
                     </div>

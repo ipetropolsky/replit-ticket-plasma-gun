@@ -3,56 +3,51 @@ import { useMutation } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from 'src/components/ui/card';
 import { Button } from 'src/components/ui/button';
 import { Badge } from 'src/components/ui/badge';
-import { Plus, Eye, CheckCircle, ExternalLink } from 'lucide-react';
+import { BriefcaseBusiness, CheckCircle, ExternalLink } from 'lucide-react';
 import { useToast } from 'src/hooks/use-toast';
 import { api } from 'src/lib/api';
 import { stripJiraMarkup } from '../lib/jira-markup';
-import type { TaskCreationResponse } from 'shared/schema';
+import type { DecompositionBlock, JiraTask, TaskCreationResponse } from 'shared/schema';
 import { Estimation } from 'shared/types.ts';
+import { CurrentTask } from 'src/components/CurrentTask.tsx';
 
 interface TaskCreationPanelProps {
     sessionId: string;
     estimation: Estimation;
     additionalRiskPercent: number;
-    blocks?: any[]; // DecompositionBlocks for task creation
-    parentJiraKey?: string; // For linking created tasks
+    blocks?: DecompositionBlock[]; // DecompositionBlocks for task creation
+    parentJiraTask: JiraTask | null; // For linking created tasks
 }
+
+const getTaskSummary = (task: DecompositionBlock) => `${task.taskInfo!.repository ? `[${task.taskInfo!.repository}] ` : ''}${stripJiraMarkup(task.taskInfo!.title)}`
 
 export const TaskCreationPanel = ({
     sessionId,
     estimation,
     additionalRiskPercent,
     blocks = [],
-    parentJiraKey,
+                                      parentJiraTask,
 }: TaskCreationPanelProps) => {
     const [createdTasks, setCreatedTasks] = useState<TaskCreationResponse['createdTasks']>([]);
     const [errors, setErrors] = useState<string[]>([]);
     const { toast } = useToast();
 
-    const createTasksMutation = useMutation({
-        mutationFn: () => {
-            // Extract tasks from blocks
-            const tasks = blocks
-                .filter(block =>
-                    block.type === 'task' &&
-                    block.taskInfo &&
-                    block.taskInfo.estimation &&
-                    block.taskInfo.estimationSP !== null
-                )
-                .map(block => ({
-                    title: stripJiraMarkup(block.taskInfo!.title),
-                    summary: `${block.taskInfo!.repository ? `[${block.taskInfo!.repository}] ` : ''}${stripJiraMarkup(block.taskInfo!.title)}`,
-                    content: block.content,
-                    description: block.content,
-                    estimation: block.taskInfo!.estimation!,
-                    storyPoints: block.taskInfo!.estimationSP!
-                }));
+    // Extract tasks from blocks
+    const tasks = blocks
+        .filter((block) => block.type === 'task');
 
+    const createTasksMutation = useMutation({
+        mutationFn: (parentJiraKey: string) => {
             return api.createTasks({
                 sessionId,
                 additionalRiskPercent,
-                tasks,
-                parentJiraKey
+                tasks: tasks.map((block) => ({
+                    summary: getTaskSummary(block),
+                    description: block.content,
+                    estimation: block.taskInfo?.estimation || undefined,
+                    storyPoints: block.taskInfo?.estimationSP || undefined
+                })),
+                parentJiraKey,
             });
         },
         onSuccess: (data) => {
@@ -82,10 +77,16 @@ export const TaskCreationPanel = ({
         },
     });
 
-
-
     const handleCreateTasks = () => {
-        createTasksMutation.mutate();
+        if (parentJiraTask) {
+            createTasksMutation.mutate(parentJiraTask.key);
+        } else {
+            toast({
+                variant: 'destructive',
+                title: 'Ахтунг!',
+                description: `Нужно указать родительскую задачу JIRA для создания подзадач.`,
+            })
+        }
     };
 
     return (
@@ -94,38 +95,40 @@ export const TaskCreationPanel = ({
                 <CardTitle className="text-lg font-semibold">Создание задач в JIRA</CardTitle>
             </CardHeader>
             <CardContent className="p-0 space-y-6">
+                <div className="p-0 space-y-2">
+                    {tasks.map((task, index) => (
+                        <div key={index} className="font-medium">
+                            {'— '}
+                            {task.taskInfo?.estimation && `${task.taskInfo.estimation} `}
+                            {getTaskSummary(task)}
+                        </div>
+                    ))}
+                </div>
                 {/* Action Buttons */}
-                <div className="flex flex-col sm:flex-row gap-3">
-                    <Button
-                        className="flex-1 px-6 py-3"
-                        onClick={handleCreateTasks}
-                        disabled={createTasksMutation.isPending}
-                        style={{
-                            backgroundColor: '#0070ff',
-                            color: 'white',
-                            height: '48px',
-                            borderRadius: '12px',
-                            fontSize: '16px'
-                        }}
-                        data-testid="button-create-tasks"
-                    >
-                        <Plus className="w-4 h-4" />
-                        {createTasksMutation.isPending ? 'Создание...' : 'Завести задачи в JIRA'}
-                    </Button>
-                    <Button
-                        variant="secondary"
-                        className="px-6 py-3"
-                        style={{
-                            borderRadius: '12px',
-                            height: '48px',
-                            fontSize: '16px'
-                        }}
-                        disabled={createTasksMutation.isPending}
-                        data-testid="button-preview-tasks"
-                    >
-                        <Eye className="w-4 h-4" />
-                        Предварительный просмотр
-                    </Button>
+                <div className="space-y-2">
+                    <div className="flex flex-col sm:flex-row gap-3">
+                        <Button
+                            className="px-6 py-3"
+                            onClick={handleCreateTasks}
+                            disabled={!parentJiraTask || createTasksMutation.isPending}
+                            style={{
+                                backgroundColor: '#0070ff',
+                                color: 'white',
+                                height: '48px',
+                                borderRadius: '12px',
+                                fontSize: '16px'
+                            }}
+                            data-testid="button-create-tasks"
+                        >
+                            <BriefcaseBusiness className="w-4 h-4" />
+                            {createTasksMutation.isPending ? 'Создание...' : 'Завести задачи в JIRA'}
+                        </Button>
+                    </div>
+                    {!parentJiraTask && (
+                        <div className="text-sm mt-0 text-red-600">
+                            Укажите родительскую задачу JIRA для создания подзадач.
+                        </div>
+                    )}
                 </div>
 
                 {/* Success State */}
@@ -139,8 +142,7 @@ export const TaskCreationPanel = ({
                             <CheckCircle className="w-5 h-5 text-green-600" />
                             <span className="font-medium text-green-800">Задачи успешно созданы!</span>
                         </div>
-                        <div className="text-sm text-green-700">
-                            <p className="mb-2">Создано задач: {createdTasks.length}</p>
+                        <div className="text-md text-green-700">
                             <ul className="space-y-1">
                                 {createdTasks.map((task) => (
                                     <li key={task.id}>
@@ -181,6 +183,11 @@ export const TaskCreationPanel = ({
                                 ))}
                             </ul>
                         </div>
+                    </div>
+                )}
+                {parentJiraTask && (
+                    <div className="pt-4 border-t border-border">
+                        <CurrentTask currentTask={parentJiraTask} />
                     </div>
                 )}
             </CardContent>

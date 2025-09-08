@@ -130,7 +130,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     app.post('/api/jira/create-tasks', async (req, res) => {
         try {
             const requestData = CreateTaskRequestSchema.parse(req.body);
-            const { sessionId, additionalRiskPercent, tasks, parentJiraKey } = requestData;
+            const { tasks, parentJiraKey } = requestData;
 
             if (!tasks || tasks.length === 0) {
                 return res.status(400).json({
@@ -142,10 +142,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
             // Prepare tasks for JIRA creation
             const jiraTasks = tasks.map((task: any) => ({
-                summary: task.summary || task.title,
-                description: task.description || task.content || '',
-                estimation: task.estimation,
-                storyPoints: task.storyPoints
+                summary: task.summary,
+                description: task.description || '',
+                estimation: task.estimation || null,
+                storyPoints: task.storyPoints || null
             }));
 
             let createdTasks: Array<{ key: string; id: string; summary: string; url: string }> = [];
