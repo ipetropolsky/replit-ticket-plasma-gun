@@ -221,6 +221,9 @@
   font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
   font-size: 0.85em;
   line-height: 1.45;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: pre-wrap;
 }
 
 .jira-content pre code {
@@ -237,6 +240,8 @@
   border-radius: 3px;
   font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
   font-size: 0.85em;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 /* Links */
@@ -316,6 +321,8 @@
   border-radius: 3px;
   font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
   font-size: 0.85em;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .jira-content .panel {
