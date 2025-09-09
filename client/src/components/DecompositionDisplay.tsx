@@ -28,28 +28,28 @@ export const DecompositionDisplay = ({
     parseMutation,
 }: DecompositionDisplayProps) => {
     const [renderMode, setRenderMode] = useState<RenderingMode>('html');
-    
+
     // Helper functions for LLM estimation display
     const shouldShowLLMEstimation = (taskInfo: any) => {
         return taskInfo?.estimationByLLM?.estimation && !taskInfo?.estimation;
     };
-    
+
     const shouldShowLLMRisk = (taskInfo: any) => {
         return taskInfo?.estimationByLLM?.risk && !taskInfo?.risk;
     };
-    
+
     const isLLMEstimationMatching = (taskInfo: any) => {
         return taskInfo?.estimation && taskInfo?.estimationByLLM?.estimation === taskInfo?.estimation;
     };
-    
+
     const isLLMRiskMatching = (taskInfo: any) => {
         return taskInfo?.risk && taskInfo?.estimationByLLM?.risk === taskInfo?.risk;
     };
-    
+
     const isLLMEstimationDifferent = (taskInfo: any) => {
         return taskInfo?.estimation && taskInfo?.estimationByLLM?.estimation && taskInfo?.estimationByLLM?.estimation !== taskInfo?.estimation;
     };
-    
+
     const isLLMRiskDifferent = (taskInfo: any) => {
         return taskInfo?.risk && taskInfo?.estimationByLLM?.risk && taskInfo?.estimationByLLM?.risk !== taskInfo?.risk;
     };
@@ -167,7 +167,7 @@ export const DecompositionDisplay = ({
                                                                 } else {
                                                                     return '—';
                                                                 }
-                                                            })()} 
+                                                            })()}
                                                         </span>
                                                         {block.taskInfo.estimationByLLM && (
                                                             <TooltipProvider>
@@ -175,27 +175,27 @@ export const DecompositionDisplay = ({
                                                                     <TooltipTrigger asChild>
                                                                         <span className="cursor-pointer">
                                                                             {shouldShowLLMEstimation(block.taskInfo) ? (
-                                                                                <Bot className="h-4 w-4 text-blue-600" />
+                                                                                <Bot className="h-5 w-5 text-blue-600" />
                                                                             ) : isLLMEstimationMatching(block.taskInfo) ? (
-                                                                                <CheckCircle2 className="h-4 w-4 text-green-600" />
+                                                                                <CheckCircle2 className="h-5 w-5 text-green-600" />
                                                                             ) : isLLMEstimationDifferent(block.taskInfo) ? (
-                                                                                <Bot className="h-4 w-4 text-orange-600" />
+                                                                                <Bot className="h-5 w-5 text-orange-600" />
                                                                             ) : null}
                                                                         </span>
                                                                     </TooltipTrigger>
                                                                     <TooltipContent className="max-w-xs">
-                                                                        <div className="space-y-1">
+                                                                        <div className="space-y-1 text-left">
                                                                             {shouldShowLLMEstimation(block.taskInfo) && (
-                                                                                <p className="font-medium text-blue-600">Оценка от LLM</p>
+                                                                                <p className="font-semibold text-blue-600">Оценка от LLM</p>
                                                                             )}
                                                                             {isLLMEstimationMatching(block.taskInfo) && (
-                                                                                <p className="font-medium text-green-600">LLM подтверждает</p>
+                                                                                <p className="font-semibold text-green-600">LLM подтверждает</p>
                                                                             )}
                                                                             {isLLMEstimationDifferent(block.taskInfo) && (
-                                                                                <p className="font-medium text-orange-600">LLM: {block.taskInfo.estimationByLLM.estimation}</p>
+                                                                                <p className="font-semibold text-orange-600">LLM: {block.taskInfo.estimationByLLM.estimation}</p>
                                                                             )}
                                                                             {block.taskInfo.estimationByLLM.reasoning && (
-                                                                                <p className="text-sm text-muted-foreground">{block.taskInfo.estimationByLLM.reasoning}</p>
+                                                                                <p className="font-medium text-md text-muted-foreground">{block.taskInfo.estimationByLLM.reasoning}</p>
                                                                             )}
                                                                         </div>
                                                                     </TooltipContent>
@@ -223,7 +223,7 @@ export const DecompositionDisplay = ({
                                                                 } else {
                                                                     return '—';
                                                                 }
-                                                            })()} 
+                                                            })()}
                                                         </span>
                                                         {block.taskInfo.estimationByLLM?.risk && (
                                                             <TooltipProvider>
@@ -231,27 +231,27 @@ export const DecompositionDisplay = ({
                                                                     <TooltipTrigger asChild>
                                                                         <span className="cursor-pointer">
                                                                             {shouldShowLLMRisk(block.taskInfo) ? (
-                                                                                <Bot className="h-4 w-4 text-blue-600" />
+                                                                                <Bot className="h-5 w-5 text-blue-600" />
                                                                             ) : isLLMRiskMatching(block.taskInfo) ? (
-                                                                                <CheckCircle2 className="h-4 w-4 text-green-600" />
+                                                                                <CheckCircle2 className="h-5 w-5 text-green-600" />
                                                                             ) : isLLMRiskDifferent(block.taskInfo) ? (
-                                                                                <Bot className="h-4 w-4 text-orange-600" />
+                                                                                <Bot className="h-5 w-5 text-orange-600" />
                                                                             ) : null}
                                                                         </span>
                                                                     </TooltipTrigger>
                                                                     <TooltipContent className="max-w-xs">
-                                                                        <div className="space-y-1">
+                                                                        <div className="space-y-1 text-left">
                                                                             {shouldShowLLMRisk(block.taskInfo) && (
-                                                                                <p className="font-medium text-blue-600">Риск от LLM</p>
+                                                                                <p className="font-semibold text-blue-600">Риск от LLM</p>
                                                                             )}
                                                                             {isLLMRiskMatching(block.taskInfo) && (
-                                                                                <p className="font-medium text-green-600">LLM подтверждает</p>
+                                                                                <p className="font-semibold text-green-600">LLM подтверждает</p>
                                                                             )}
                                                                             {isLLMRiskDifferent(block.taskInfo) && (
-                                                                                <p className="font-medium text-orange-600">LLM: {block.taskInfo.estimationByLLM.risk}</p>
+                                                                                <p className="font-semibold text-orange-600">LLM: {block.taskInfo.estimationByLLM.risk}</p>
                                                                             )}
                                                                             {block.taskInfo.estimationByLLM.reasoning && (
-                                                                                <p className="text-sm text-muted-foreground">{block.taskInfo.estimationByLLM.reasoning}</p>
+                                                                                <p className="font-medium text-md text-muted-foreground">{block.taskInfo.estimationByLLM.reasoning}</p>
                                                                             )}
                                                                         </div>
                                                                     </TooltipContent>
