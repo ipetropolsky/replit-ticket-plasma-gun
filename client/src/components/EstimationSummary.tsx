@@ -268,6 +268,11 @@ export const EstimationSummary = ({
                             Задачи без оценки: <span className="font-medium">{estimation.tasksWithoutEstimation}</span>
                         </div>
                     )}
+                    {estimation.tasksWithLLMEstimation > 0 && (
+                        <div className="text-blue-600">
+                            Оценено LLM: <span className="font-medium">{estimation.tasksWithLLMEstimation}</span>
+                        </div>
+                    )}
                 </div>
             </CardContent>
         </Card>

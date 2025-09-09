@@ -1,6 +1,12 @@
 import { Card, CardContent, CardHeader, CardTitle } from 'src/components/ui/card';
 import { Badge } from 'src/components/ui/badge';
-import { Loader2, CheckCircle } from 'lucide-react';
+import { Loader2, CheckCircle, Bot, CheckCircle2 } from 'lucide-react';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from 'src/components/ui/tooltip';
 import { useState } from 'react';
 import type { DecompositionBlock } from 'shared/schema';
 import { UseMutationResult } from '@tanstack/react-query';
@@ -22,6 +28,31 @@ export const DecompositionDisplay = ({
     parseMutation,
 }: DecompositionDisplayProps) => {
     const [renderMode, setRenderMode] = useState<RenderingMode>('html');
+    
+    // Helper functions for LLM estimation display
+    const shouldShowLLMEstimation = (taskInfo: any) => {
+        return taskInfo?.estimationByLLM?.estimation && !taskInfo?.estimation;
+    };
+    
+    const shouldShowLLMRisk = (taskInfo: any) => {
+        return taskInfo?.estimationByLLM?.risk && !taskInfo?.risk;
+    };
+    
+    const isLLMEstimationMatching = (taskInfo: any) => {
+        return taskInfo?.estimation && taskInfo?.estimationByLLM?.estimation === taskInfo?.estimation;
+    };
+    
+    const isLLMRiskMatching = (taskInfo: any) => {
+        return taskInfo?.risk && taskInfo?.estimationByLLM?.risk === taskInfo?.risk;
+    };
+    
+    const isLLMEstimationDifferent = (taskInfo: any) => {
+        return taskInfo?.estimation && taskInfo?.estimationByLLM?.estimation && taskInfo?.estimationByLLM?.estimation !== taskInfo?.estimation;
+    };
+    
+    const isLLMRiskDifferent = (taskInfo: any) => {
+        return taskInfo?.risk && taskInfo?.estimationByLLM?.risk && taskInfo?.estimationByLLM?.risk !== taskInfo?.risk;
+    };
 
     // Показываем блок только если идет парсинг или есть результаты
     if (!parseMutation.isPending && blocks.length === 0) {
@@ -118,32 +149,114 @@ export const DecompositionDisplay = ({
                                         {block.taskInfo && (
                                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3">
                                                 <div
-                                                    className={`text-center p-2 ${getEstimationBgColor(block.taskInfo.estimation)}`}
+                                                    className={`text-center p-2 ${getEstimationBgColor(
+                                                        shouldShowLLMEstimation(block.taskInfo) ? block.taskInfo.estimationByLLM?.estimation : block.taskInfo.estimation
+                                                    )}`}
                                                     style={{ borderRadius: '8px' }}
                                                 >
                                                     <div className="text-sm font-medium text-muted-foreground">
                                                         Оценка
                                                     </div>
-                                                    <div className="text-lg font-bold text-foreground">
-                                                        {block.taskInfo.estimation ? (
-                                                            `${block.taskInfo.estimation} (${block.taskInfo.estimationSP} SP)`
-                                                        ) : (
-                                                            '—'
+                                                    <div className="text-lg font-bold text-foreground flex items-center justify-center space-x-2">
+                                                        <span>
+                                                            {(() => {
+                                                                if (shouldShowLLMEstimation(block.taskInfo)) {
+                                                                    return `${block.taskInfo.estimationByLLM.estimation} (${block.taskInfo.estimationByLLM.estimation === 'XS' ? 0.5 : block.taskInfo.estimationByLLM.estimation === 'S' ? 1 : block.taskInfo.estimationByLLM.estimation === 'M' ? 2 : block.taskInfo.estimationByLLM.estimation === 'L' ? 3 : 5} SP)`;
+                                                                } else if (block.taskInfo.estimation) {
+                                                                    return `${block.taskInfo.estimation} (${block.taskInfo.estimationSP} SP)`;
+                                                                } else {
+                                                                    return '—';
+                                                                }
+                                                            })()} 
+                                                        </span>
+                                                        {block.taskInfo.estimationByLLM && (
+                                                            <TooltipProvider>
+                                                                <Tooltip>
+                                                                    <TooltipTrigger asChild>
+                                                                        <span className="cursor-pointer">
+                                                                            {shouldShowLLMEstimation(block.taskInfo) ? (
+                                                                                <Bot className="h-4 w-4 text-blue-600" />
+                                                                            ) : isLLMEstimationMatching(block.taskInfo) ? (
+                                                                                <CheckCircle2 className="h-4 w-4 text-green-600" />
+                                                                            ) : isLLMEstimationDifferent(block.taskInfo) ? (
+                                                                                <Bot className="h-4 w-4 text-orange-600" />
+                                                                            ) : null}
+                                                                        </span>
+                                                                    </TooltipTrigger>
+                                                                    <TooltipContent className="max-w-xs">
+                                                                        <div className="space-y-1">
+                                                                            {shouldShowLLMEstimation(block.taskInfo) && (
+                                                                                <p className="font-medium text-blue-600">Оценка от LLM</p>
+                                                                            )}
+                                                                            {isLLMEstimationMatching(block.taskInfo) && (
+                                                                                <p className="font-medium text-green-600">LLM подтверждает</p>
+                                                                            )}
+                                                                            {isLLMEstimationDifferent(block.taskInfo) && (
+                                                                                <p className="font-medium text-orange-600">LLM: {block.taskInfo.estimationByLLM.estimation}</p>
+                                                                            )}
+                                                                            {block.taskInfo.estimationByLLM.reasoning && (
+                                                                                <p className="text-sm text-muted-foreground">{block.taskInfo.estimationByLLM.reasoning}</p>
+                                                                            )}
+                                                                        </div>
+                                                                    </TooltipContent>
+                                                                </Tooltip>
+                                                            </TooltipProvider>
                                                         )}
                                                     </div>
                                                 </div>
                                                 <div
-                                                    className={`text-center p-2 ${getRiskBgColor(block.taskInfo.risk)}`}
+                                                    className={`text-center p-2 ${getRiskBgColor(
+                                                        shouldShowLLMRisk(block.taskInfo) ? block.taskInfo.estimationByLLM?.risk : block.taskInfo.risk
+                                                    )}`}
                                                     style={{ borderRadius: '8px' }}
                                                 >
                                                     <div className="text-sm font-medium text-muted-foreground">
                                                         Риск
                                                     </div>
-                                                    <div className="text-lg font-bold text-foreground">
-                                                        {block.taskInfo.risk ? (
-                                                            `${block.taskInfo.risk} (${block.taskInfo.riskSP} SP)`
-                                                        ) : (
-                                                            '—'
+                                                    <div className="text-lg font-bold text-foreground flex items-center justify-center space-x-2">
+                                                        <span>
+                                                            {(() => {
+                                                                if (shouldShowLLMRisk(block.taskInfo)) {
+                                                                    return `${block.taskInfo.estimationByLLM.risk} (${block.taskInfo.estimationByLLM.risk === 'XS' ? 0.5 : block.taskInfo.estimationByLLM.risk === 'S' ? 1 : block.taskInfo.estimationByLLM.risk === 'M' ? 2 : block.taskInfo.estimationByLLM.risk === 'L' ? 3 : 5} SP)`;
+                                                                } else if (block.taskInfo.risk) {
+                                                                    return `${block.taskInfo.risk} (${block.taskInfo.riskSP} SP)`;
+                                                                } else {
+                                                                    return '—';
+                                                                }
+                                                            })()} 
+                                                        </span>
+                                                        {block.taskInfo.estimationByLLM?.risk && (
+                                                            <TooltipProvider>
+                                                                <Tooltip>
+                                                                    <TooltipTrigger asChild>
+                                                                        <span className="cursor-pointer">
+                                                                            {shouldShowLLMRisk(block.taskInfo) ? (
+                                                                                <Bot className="h-4 w-4 text-blue-600" />
+                                                                            ) : isLLMRiskMatching(block.taskInfo) ? (
+                                                                                <CheckCircle2 className="h-4 w-4 text-green-600" />
+                                                                            ) : isLLMRiskDifferent(block.taskInfo) ? (
+                                                                                <Bot className="h-4 w-4 text-orange-600" />
+                                                                            ) : null}
+                                                                        </span>
+                                                                    </TooltipTrigger>
+                                                                    <TooltipContent className="max-w-xs">
+                                                                        <div className="space-y-1">
+                                                                            {shouldShowLLMRisk(block.taskInfo) && (
+                                                                                <p className="font-medium text-blue-600">Риск от LLM</p>
+                                                                            )}
+                                                                            {isLLMRiskMatching(block.taskInfo) && (
+                                                                                <p className="font-medium text-green-600">LLM подтверждает</p>
+                                                                            )}
+                                                                            {isLLMRiskDifferent(block.taskInfo) && (
+                                                                                <p className="font-medium text-orange-600">LLM: {block.taskInfo.estimationByLLM.risk}</p>
+                                                                            )}
+                                                                            {block.taskInfo.estimationByLLM.reasoning && (
+                                                                                <p className="text-sm text-muted-foreground">{block.taskInfo.estimationByLLM.reasoning}</p>
+                                                                            )}
+                                                                        </div>
+                                                                    </TooltipContent>
+                                                                </Tooltip>
+                                                            </TooltipProvider>
                                                         )}
                                                     </div>
                                                 </div>

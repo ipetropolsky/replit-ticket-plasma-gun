@@ -3,6 +3,7 @@ export interface Estimation {
     risks: number;
     taskCount: number;
     tasksWithoutEstimation: number;
+    tasksWithLLMEstimation: number;
     formula: string;
     riskFormula: string;
 }

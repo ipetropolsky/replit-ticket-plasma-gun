@@ -34,6 +34,7 @@ export class EstimationService {
         let risks = 0;
         let taskCount = 0;
         let tasksWithoutEstimation = 0;
+        let tasksWithLLMEstimation = 0;
         const estimations: string[] = [];
         const riskItems: string[] = [];
 
@@ -45,6 +46,13 @@ export class EstimationService {
             if (block.taskInfo.estimation && block.taskInfo.estimationSP) {
                 baseEstimation += block.taskInfo.estimationSP;
                 estimations.push(block.taskInfo.estimation);
+            } else if (block.taskInfo.estimationByLLM?.estimation) {
+                // Use LLM estimation if no manual estimation
+                const llmEstimation = block.taskInfo.estimationByLLM.estimation;
+                const llmSP = this.mapping[llmEstimation] || 0;
+                baseEstimation += llmSP;
+                estimations.push(llmEstimation);
+                tasksWithLLMEstimation++;
             } else if (block.taskInfo.estimation === '?' || !block.taskInfo.estimation) {
                 tasksWithoutEstimation++;
             }
@@ -67,6 +75,7 @@ export class EstimationService {
             risks,
             taskCount,
             tasksWithoutEstimation,
+            tasksWithLLMEstimation,
             formula,
             riskFormula,
         };
