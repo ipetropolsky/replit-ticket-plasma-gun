@@ -1,28 +1,86 @@
 import OpenAI from 'openai';
 import Anthropic from '@anthropic-ai/sdk';
 import { DecompositionBlock } from 'shared/schema';
+import { LLMProvider, TShirt, TShirtsToSPMapping, TShirtValues } from 'shared/types.ts';
 
-type LLMProvider = 'openai' | 'anthropic' | 'regexp';
+export interface ParseDecompositionParams {
+    provider?: LLMProvider;
+    decompositionText: string;
+    tShirtsToSPMapping: TShirtsToSPMapping;
+}
 
 const getSystemPrompt = () => 'You are an expert at parsing JIRA task decomposition text. Always respond with valid JSON.';
 
-const getPrompt = (decompositionText: string) => `
-Analyze the following JIRA decomposition text and split it into blocks. Each block should be either "text" or "task".
+const getPrompt = (decompositionText: string, tShirtsToSPMapping: TShirtsToSPMapping) => `
+Проанализируй следующий текст декомпозиции большой задачи в разметке JIRA и разбей его на блоки, сохранив все символы и не добавляя новых. Каждый блок должен быть одного из типов: «текст» или «задача». Задача состоит из заголовка и описания, в заголовке указывается репозиторий, название задачи и опционально оценка.
 
-Rules:
-1. Task blocks can be in format like "M [repo] Task name" or "*S+ [xhh] Sidebar*" or in headings like "h2. S+ [backend] API для аутентификации"
-2. Task titles may include JIRA markup like "[base|https://example.com]"
-3. Extract estimation (XS, S, M, L, XL) and risk from the title
-4. For combined estimations like "S+" or "M+S", the base is the main estimation, risk is the extra part
-5. Repository name is in square brackets [repo]
-6. Task description includes everything until the next task OR until a heading of the same level or higher
-7. Track header levels - if we're in a task with header level h3, then h3 or higher (h1, h2) ends the task description
-8. Everything else is text blocks
+Задачи оцениваются:
+- в «майках» (варианты: 0, ?, XS, S, M, L, XL)
+- в стори-поинтах (Story Point, SP)
+- в рабочих днях.
 
-Text to analyze:
+1 SP равен примерно 2 рабочим дням.
+Соответствие между майками и SP следующее:
+${JSON.stringify(tShirtsToSPMapping)}
+
+# Правила поиска задач:
+
+1) Заголовками задач считаем строки в формате "[репозиторий] название" + опционально оценка где-то рядом.
+- Заголовок задачи может быть выделено с помощью разметки JIRA целиком или частично.
+- Репозиторий — строка из латинских букв, точек и дефисов, может быть "[фронт]", "[бэк]" и т.п., но не "[подумать]", "[под вопросом]" и т.п.
+
+Примеры заголовков задач:
+- "*S+ [repo] Название задачи*"
+- "h2. (?) [repo] Название задачи"
+- "M [repo] Название задачи"
+- "*S+XS [repo] Название задачи*"
+- "h2. [repo] Название задачи - M"
+- "* *[repo] Название задачи - S+*"
+- "- [repo] *Название задачи* - *[XS]*"
+- "S+ [repo] Название [задачи|https://example.com] (?)" (в данном случае оценка S, риск XS, а "(?)" — часть названия)
+- и другие комбинации.
+
+2) Описание задачи включает всё до следующего заголовка задачи ИЛИ до текстового заголовка того же уровня или выше.
+
+Важно: отслеживай уровни заголовков. Если мы находимся в задаче, заголовок которой был помечен как h3, то следующий h3 или выше (h1, h2) завершает описание задачи и начинает новый блок.
+
+3) Все блоки между задачами — текстовые блоки.
+
+4) После разделения на блоки нужно определить оценку для каждой задачи.
+
+Оценкой задачи считаем один из вариантов:
+- «Майка»
+- Количество SP
+- Количество дней (считаем что это количество рабочих дней)
+
+К оценке может добавляться риск в виде символа "+" (считаем, что риск на 1 уровень меньше оценки, для "M+" будет оценка M, риск S). Риск может быть указан явно: "M+S" (оценка M, риск S).
+
+Оценка может находиться в любом месте заголовка задачи (в начале, в конце или после репозитория). Оценка может быть отделена от других частей символами ":" или " - ", скобками "(S)" или "[S]", JIRA-разметкой: "*S*", "_S_" и т.д.
+
+Если оценки нет в заголовке задачи, она может быть указана описании.
+
+Если оценка указана в SP или в рабочих днях, определи соответствующее значение в майках. Пример: "[репозиторий] Название задачи: 2+ дня": 2 дня == 1 SP, значит оценка S, риск XS (потому что есть "+").
+
+5) Независимо от указанной в тексте оценки оцени задачу и риски сам по её по названию и описанию, результат добавь в поле estimationByLLM.
+
+Как оценить задачу:
+- XS: минимальный размер задачи, предельно ясно, что нужно сделать, трудозатраты несколько часов. 
+- S: в целом всё понятно, но нужно пописать кода в разных местах, займёт примерно день-два.
+- M: сложная задача, нужно много кода и залезть в разные места, разобраться как что работает, договориться с другими командами, уточнить вопросы у дизайнера или продакта. Занимает несколько дней.
+- L: очень большая и сложная задача, признак того, что нужно разделить её на несколько маленьких. Занимает 1-2 недели.
+
+Факторы риска:
+- Непонятное описание
+- Непонятно, как сделать
+- Общение с другими командами
+- Много незакрытых вопросов
+- Нужно сделать много всего
+- Сложно воспроизвести все кейсы
+
+Текст для анализа:
 ${decompositionText}
 
-Respond with JSON in this format:
+Ответь строго в формате JSON, без пояснений, комментариев и прочего, только JSON. Формат ответа:
 {
   "blocks": [
     {
@@ -34,11 +92,17 @@ Respond with JSON in this format:
         "estimation": "XS|S|M|L|XL or null",
         "risk": "XS|S|M|L|XL or null",
         "estimationSP": number_or_null,
-        "riskSP": number_or_null
+        "riskSP": number_or_null,
+        "estimationByLLM": {
+          "estimation": "XS|S|M|L|XL or null",
+          "risk": "XS|S|M|L|XL or null",
+          "reasoning": "short explanation of how LLM derived this estimation in russian"
+        }
       }
     }
   ]
-}`;
+}
+`;
 
 export class LLMService {
     private provider: LLMProvider;
@@ -56,7 +120,7 @@ export class LLMService {
         this.hasAnthropic = !!anthropicKey;
 
         // Determine provider from environment or fallback
-        const envProvider = process.env.LLM_PROVIDER as LLMProvider;
+        const envProvider = process.env.DEFAULT_LLM_PROVIDER as LLMProvider;
 
         if (envProvider === 'openai' && this.hasOpenAI) {
             this.provider = 'openai';
@@ -79,6 +143,7 @@ export class LLMService {
         } else if (this.provider === 'anthropic' && this.hasAnthropic) {
             this.anthropic = new Anthropic({
                 apiKey: anthropicKey,
+                baseURL: process.env.ANTHROPIC_HOST || undefined,
             });
         }
 
@@ -93,57 +158,56 @@ export class LLMService {
         ];
     }
 
-    async parseDecomposition(decompositionText: string, provider?: LLMProvider): Promise<DecompositionBlock[]> {
+    async parseDecomposition(params: ParseDecompositionParams): Promise<DecompositionBlock[]> {
+        const { provider, decompositionText, tShirtsToSPMapping } = params;
         const useProvider = provider || this.provider;
         console.log(`Parsing decomposition using provider: ${useProvider}`);
         switch (useProvider) {
             case 'openai':
-                return this.parseWithOpenAI(decompositionText);
+                return this.parseWithOpenAI(decompositionText, tShirtsToSPMapping);
             case 'anthropic':
-                return this.parseWithAnthropic(decompositionText);
+                return this.parseWithAnthropic(decompositionText, tShirtsToSPMapping);
             case 'regexp':
             default:
-                return this.parseWithRegex(decompositionText);
+                return this.parseWithRegex(decompositionText, tShirtsToSPMapping);
         }
     }
 
-    private async parseWithOpenAI(decompositionText: string): Promise<DecompositionBlock[]> {
+    private async parseWithOpenAI(decompositionText: string, tShirtsToSPMapping: TShirtsToSPMapping): Promise<DecompositionBlock[]> {
         if (!this.openai) {
             throw new Error('OpenAI not initialized');
         }
 
-        const prompt = getPrompt(decompositionText);
+        const prompt = getPrompt(decompositionText, tShirtsToSPMapping);
 
         try {
             const response = await this.openai.chat.completions.create({
                 model: 'gpt-4',
                 messages: [
-                    {
-                        role: 'system',
-                        content: getSystemPrompt(),
-                    },
-                    {
-                        role: 'user',
-                        content: prompt,
-                    },
+                    { role: 'system', content: getSystemPrompt() },
+                    { role: 'user', content: prompt },
                 ],
                 temperature: 0.5,
             });
 
-            const result = JSON.parse(response.choices[0].message.content || '{"blocks": []}');
-            return this.processBlocks(result.blocks);
+            console.log('OpenAI raw response:', response);
+            console.log('OpenAI response content:', response.choices[0].message.content);
+
+            const content = (response.choices[0].message.content || '').replace(/^\s*```json\s*\{|\s*```\s*$/g, '');
+            const result = JSON.parse(content || '{"blocks": []}');
+            return this.processBlocks(result.blocks, tShirtsToSPMapping);
         } catch (error: any) {
             console.error('OpenAI parsing error:', error);
             throw new Error(`OpenAI parsing failed: ${error.message}`);
         }
     }
 
-    private async parseWithAnthropic(decompositionText: string): Promise<DecompositionBlock[]> {
+    private async parseWithAnthropic(decompositionText: string, tShirtsToSPMapping: TShirtsToSPMapping): Promise<DecompositionBlock[]> {
         if (!this.anthropic) {
             throw new Error('Anthropic not initialized');
         }
 
-        const prompt = getPrompt(decompositionText);
+        const prompt = getPrompt(decompositionText, tShirtsToSPMapping);
 
         try {
             /*
@@ -163,13 +227,19 @@ export class LLMService {
                 max_tokens: 10000,
                 system: getSystemPrompt(),
                 messages: [
-                    { role: 'user', content: prompt }
+                    { role: 'user', content: prompt },
                 ],
+                temperature: 0.5,
             });
 
             if (response.content[0].type === 'text') {
-                const result = JSON.parse(response.content[0].text);
-                return this.processBlocks(result.blocks);
+                console.log('Anthropic raw response:', response);
+                console.log('Anthropic response content:', response.content[0].text || '');
+
+                const content = (response.content[0].text || '').replace(/^\s*```json\s*|\s*```\s*$/g, '');
+                const result = JSON.parse(content || '{"blocks": []}');
+                console.log('Anthropic parsed JSON:', result);
+                return this.processBlocks(result.blocks, tShirtsToSPMapping);
             }
             throw new Error('Unexpected response format from Anthropic');
         } catch (error: any) {
@@ -178,7 +248,7 @@ export class LLMService {
         }
     }
 
-    private parseWithRegex(decompositionText: string): DecompositionBlock[] {
+    private parseWithRegex(decompositionText: string, tShirtsToSPMapping: TShirtsToSPMapping): DecompositionBlock[] {
         const lines = decompositionText.split('\n');
         const blocks: DecompositionBlock[] = [];
         let currentText = '';
@@ -218,7 +288,7 @@ export class LLMService {
                 }
 
                 // Parse estimation and risk
-                const { estimation, risk, estimationSP, riskSP } = this.parseEstimation(rawEstimation);
+                const { estimation, risk, estimationSP, riskSP } = this.parseEstimation(rawEstimation, tShirtsToSPMapping);
 
                 // Collect task content - только описание без названия задачи
                 let taskContent = '';
@@ -299,15 +369,15 @@ export class LLMService {
         return blocks;
     }
 
-    private processBlocks(blocks: any[]): DecompositionBlock[] {
+    private processBlocks(blocks: any[], tShirtsToSPMapping: TShirtsToSPMapping): DecompositionBlock[] {
         return blocks.map((block: any) => {
             if (block.type === 'task' && block.taskInfo) {
                 // Calculate story points if not already set
                 if (block.taskInfo.estimationSP === null && block.taskInfo.estimation) {
-                    block.taskInfo.estimationSP = this.getEstimationSP(block.taskInfo.estimation);
+                    block.taskInfo.estimationSP = this.getEstimationSP(block.taskInfo.estimation, tShirtsToSPMapping);
                 }
                 if (block.taskInfo.riskSP === null && block.taskInfo.risk) {
-                    block.taskInfo.riskSP = this.getEstimationSP(block.taskInfo.risk);
+                    block.taskInfo.riskSP = this.getEstimationSP(block.taskInfo.risk, tShirtsToSPMapping);
                 }
             }
 
@@ -319,7 +389,7 @@ export class LLMService {
         });
     }
 
-    private parseEstimation(rawEstimation?: string): {
+    private parseEstimation(rawEstimation: string | null, tShirtsToSPMapping: TShirtsToSPMapping): {
         estimation: string | null;
         risk: string | null;
         estimationSP: number | null;
@@ -338,14 +408,14 @@ export class LLMService {
             return {
                 estimation: baseEstimation,
                 risk: riskEstimation,
-                estimationSP: this.getEstimationSP(baseEstimation),
-                riskSP: this.getEstimationSP(riskEstimation)
+                estimationSP: this.getEstimationSP(baseEstimation, tShirtsToSPMapping),
+                riskSP: this.getEstimationSP(riskEstimation, tShirtsToSPMapping)
             };
         }
 
         // Check for simple risk indicator like M+ (defaults to XS risk)
         const hasRisk = cleanEstimation.endsWith('+');
-        const baseEstimation = hasRisk ? cleanEstimation.slice(0, -1) : cleanEstimation;
+        const baseEstimation = hasRisk ? cleanEstimation.slice(0, -1) as TShirt : cleanEstimation as TShirt;
 
         // Check if estimation is valid (XS, S, M, L, XL)
         const isValidEstimation = this.isValidEstimation(baseEstimation);
@@ -353,23 +423,16 @@ export class LLMService {
         return {
             estimation: isValidEstimation ? baseEstimation : '?',
             risk: hasRisk && isValidEstimation ? 'XS' : null,
-            estimationSP: isValidEstimation ? this.getEstimationSP(baseEstimation) : null,
-            riskSP: hasRisk && isValidEstimation ? this.getEstimationSP('XS') : null
+            estimationSP: isValidEstimation ? this.getEstimationSP(baseEstimation, tShirtsToSPMapping) : null,
+            riskSP: hasRisk && isValidEstimation ? this.getEstimationSP('XS', tShirtsToSPMapping) : null
         };
     }
 
     private isValidEstimation(size: string): boolean {
-        return ['XS', 'S', 'M', 'L', 'XL'].includes(size);
+        return TShirtValues.includes(size as TShirt);
     }
 
-    private getEstimationSP(size: string): number {
-        const mapping: Record<string, number> = {
-            'XS': 0.5,
-            'S': 1,
-            'M': 2,
-            'L': 3,
-            'XL': 5
-        };
-        return mapping[size] || 0;
+    private getEstimationSP(size: string, tShirtsToSPMapping: TShirtsToSPMapping): number {
+        return tShirtsToSPMapping[size as TShirt] || 0;
     }
 }

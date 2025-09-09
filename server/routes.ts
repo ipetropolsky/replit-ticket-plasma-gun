@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import fs from 'fs';
 import path from 'path';
 import { JiraService } from "./services/jira";
-import { LLMService } from "./services/llm";
+import { LLMService, ParseDecompositionParams } from './services/llm';
 import { EstimationService } from "./services/estimation";
 import {
     JiraTaskSchema,
@@ -103,7 +103,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
             // Parse using LLM (no JIRA needed for text parsing)
             const { llmService, estimationService } = getServices({ needJira: false });
-            const blocks = await llmService.parseDecomposition(decompositionText, provider);
+            const parseDecompositionParams: ParseDecompositionParams = {
+                provider,
+                decompositionText,
+                tShirtsToSPMapping: estimationService.getEstimationMapping(),
+            }
+            const blocks = await llmService.parseDecomposition(parseDecompositionParams);
 
             // Calculate estimations
             const estimation = estimationService.calculateTotalEstimation(blocks);

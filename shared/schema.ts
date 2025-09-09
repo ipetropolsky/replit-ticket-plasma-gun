@@ -44,6 +44,11 @@ export const DecompositionBlockSchema = z.object({
         risk: z.string().nullable(), // XS, S, M, L
         estimationSP: z.number().nullable(),
         riskSP: z.number().nullable(),
+        estimationByLLM: z.object({
+            estimation: z.string().nullable(), // XS, S, M, L, XL
+            risk: z.string().nullable(), // XS, S, M, L
+            reasoning: z.string().nullable(),
+        })
     }).nullable(),
 });
 
