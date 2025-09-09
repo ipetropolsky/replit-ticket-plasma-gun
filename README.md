@@ -69,13 +69,13 @@ PORT=3000
 ```bash
 # Запуск всех сервисов
 docker compose build --no-cache
-docker-compose up -d
+docker compose up -d
 
 # Просмотр логов
-docker-compose logs -f app
+docker compose logs -f app
 
 # Остановка сервисов
-docker-compose down
+docker compose down
 ```
 
 Приложение будет доступно по адресу: `http://localhost:3000`
