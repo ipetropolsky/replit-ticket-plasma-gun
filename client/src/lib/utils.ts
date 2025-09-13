@@ -179,3 +179,15 @@ export const fixJiraLists = (html: string): string => {
 
   return document.body.innerHTML;
 }
+
+const ONE = 0;
+const SOME = 1;
+const MANY = 2;
+const TEXT_CASES = [MANY, ONE, SOME, SOME, SOME, MANY];
+export const numConversion = (num: number, words: string[]) => {
+  const remainder = num % 100;
+  if (remainder > 10 && remainder < 15) {
+    return words[MANY];
+  }
+  return words[TEXT_CASES[Math.min(num % 10, 5)]];
+}

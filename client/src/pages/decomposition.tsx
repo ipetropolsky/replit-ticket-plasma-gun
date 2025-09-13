@@ -21,6 +21,7 @@ import { useToast } from 'src/hooks/use-toast.ts';
 import { api } from 'src/lib/api.ts';
 import { Estimation } from 'shared/types.ts';
 import { HelpModal } from 'src/components/ui/HelpModal.tsx';
+import { numConversion } from 'src/lib/utils.ts';
 
 export const DecompositionPage = () => {
     const [currentTask, setCurrentTask] = useState<JiraTask | null>(null);
@@ -80,9 +81,10 @@ export const DecompositionPage = () => {
         onSuccess: (data) => {
             if (data.success) {
                 handleParsingComplete(data.blocks, data.estimation, data.sessionId, data.mapping, data.availableProviders);
+                const taskCount = data.blocks.filter(b => b.type === 'task').length;
                 toast({
                     title: 'Декомпозиция обработана',
-                    description: `Найдено ${data.blocks.filter(b => b.type === 'task').length} задач`,
+                    description: `Найдено ${taskCount} ${numConversion(taskCount, ['задача', 'задачи', 'задач'])}`,
                 });
             }
         },
