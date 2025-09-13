@@ -9,6 +9,9 @@
     "start": "NODE_ENV=production node dist/index.js",
     "ts-check": "tsc -p tsconfig.json --noEmit"
   },
+  "engines": {
+    "node": "<22"
+  },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.37.0",
     "@hookform/resolvers": "^3.10.0",
