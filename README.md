@@ -20,16 +20,17 @@
 - **Frontend**: React 18, TypeScript, CSS Modules
 - **Backend**: Express.js, Node.js 20+
 - **AI/LLM**: OpenAI-совместимый API
-- **Контейнеризация**: Docker, docker-compose
+- **Контейнеризация**: Docker, docker compose
 - **Пакетный менеджер**: npm (с планами на Yarn 4 + PNP)
 
 ## 📦 Предварительные требования
 
-- **Docker** и **docker-compose**
-- **Node.js** 20+ (для разработки)
+- **Docker** и **docker compose**
+- **Node.js** v20 или v21 (для разработки)
 - **npm** 9+ (для разработки)
 - Доступ к **JIRA API**
 - **OpenAI API ключ** (или совместимый LLM API)
+- **Anthropic API ключ** (или совместимый LLM API)
 
 ## 🛠 Быстрый запуск с Docker
 
@@ -53,13 +54,15 @@ JIRA_HOST=https://your-jira-instance.com
 JIRA_USER=your_username
 JIRA_TOKEN=your_jira_api_token
 
-# OpenAI Configuration
-OPENAI_HOST=https://api.openai.com/v1
+# OpenAI Configuration (не обязательно)
+OPENAI_HOST=https://llmgtw.hhdev.ru/proxy/openai
 OPENAI_API_KEY=your_openai_api_key
+OPENAI_MODEL=gpt-4
 
-# Anthropic Configuration
-OPENAI_HOST=https://api.openai.com/v1
-OPENAI_API_KEY=your_openai_api_key
+# Anthropic Configuration (не обязательно)
+ANTHROPIC_HOST=https://llmgtw.hhdev.ru/proxy/anthropic
+ANTHROPIC_API_KEY=your_anthropic_api_key
+ANTHROPIC_MODEL=claude-sonnet-4-20250514
 
 # Application Configuration
 NODE_ENV=production
@@ -258,11 +261,11 @@ Content-Type: application/json
 docker system prune -a
 
 # Пересборка образов
-docker-compose build --no-cache
+docker compose build --no-cache
 
 # Просмотр логов конкретного сервиса
-docker-compose logs -f app
-docker-compose logs -f db
+docker compose logs -f app
+docker compose logs -f db
 ```
 
 ### Проблемы с JIRA API
