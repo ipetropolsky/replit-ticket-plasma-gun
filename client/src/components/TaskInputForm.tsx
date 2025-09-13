@@ -35,6 +35,31 @@ const extractJiraKey = (url: string): string | null => {
 }
 */
 
+const decompositionTextExample = `h1. Общее описание
+Создание системы авторизации для пользователей
+
+h2. M+S [frontend] Создать компонент авторизации
+- Форма входа с валидацией
+- Обработка ошибок
+
+h3. Обратить внимание
+- Иконка в алерте
+- номер
+
+h2. Что-то ещё
+Очень важное
+
+h3. S+ [backend] API для аутентификации  
+- Проверка данных пользователя
+- Генерация JWT токенов
+
+h3. [docs] Документация по API
+- Описание endpoints
+- Примеры запросов
+
+h3. Не забыть
+- Вопросы дизайнерам`;
+
 export const TaskInputForm = ({
     onTaskLoaded,
     onTextProvided,
@@ -208,7 +233,8 @@ export const TaskInputForm = ({
 
                 {/* Text Input Section */}
                 <div className="space-y-3">
-                    <Label htmlFor="text-input">Текст декомпозиции</Label>
+                    <Label htmlFor="text-input">Текст декомпозиции</Label>{' '}
+                    (<span className="text-sm text-muted-foreground text-primary cursor-pointer" onClick={() => { setTextInput(decompositionTextExample); }}>подставить пример</span>)
 
                     <Textarea
                         id="text-input"
