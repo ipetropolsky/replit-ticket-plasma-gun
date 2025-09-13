@@ -26,10 +26,12 @@ ${JSON.stringify(tShirtsToSPMapping)}
 # Правила поиска задач:
 
 1) Заголовками задач считаем строки в формате "[репозиторий] название" + опционально оценка где-то рядом.
+- Если в начале строки (без учёта разметки) есть "[репозиторий]" и дальше текст, то это заголовок задачи.
+- В "[]" название репозитория — строка из букв, точек и дефисов, может быть "[xhh]", "[frontend]", "[фронт]", "[бэкенд]" и т.п., но не "[подумать]", "[под вопросом]" и т.п.
 - Заголовок задачи может быть выделено с помощью разметки JIRA целиком или частично.
-- Репозиторий — строка из латинских букв, точек и дефисов, может быть "[фронт]", "[бэк]" и т.п., но не "[подумать]", "[под вопросом]" и т.п.
 
 Примеры заголовков задач:
+- "[repo] Название задачи" – без оценки
 - "*S+ [repo] Название задачи*"
 - "h2. (?) [repo] Название задачи"
 - "M [repo] Название задачи"
@@ -105,7 +107,6 @@ ${decompositionText}
 `;
 
 export class LLMService {
-    private provider: LLMProvider;
     private openai?: OpenAI;
     private anthropic?: Anthropic;
     private hasOpenAI: boolean;
@@ -119,35 +120,29 @@ export class LLMService {
         this.hasOpenAI = !!openAIKey;
         this.hasAnthropic = !!anthropicKey;
 
-        // Determine provider from environment or fallback
-        const envProvider = process.env.DEFAULT_LLM_PROVIDER as LLMProvider;
-
-        if (envProvider === 'openai' && this.hasOpenAI) {
-            this.provider = 'openai';
-        } else if (envProvider === 'anthropic' && this.hasAnthropic) {
-            this.provider = 'anthropic';
-        } else if (this.hasOpenAI) {
-            this.provider = 'openai';
-        } else if (this.hasAnthropic) {
-            this.provider = 'anthropic';
-        } else {
-            this.provider = 'regexp';
+        if (this.hasOpenAI) {
+            try {
+                this.openai = new OpenAI({
+                    apiKey: openAIKey,
+                    baseURL: process.env.OPENAI_HOST || undefined,
+                });
+                console.log(`OpenAI LLM provider is ready`);
+            } catch (error) {
+                console.error(`OpenAI LLM provider failed`, error);
+            }
+        }
+        if (this.hasAnthropic) {
+            try {
+                this.anthropic = new Anthropic({
+                    apiKey: anthropicKey,
+                    baseURL: process.env.ANTHROPIC_HOST || undefined,
+                });
+                console.log(`Anthropic LLM provider is ready`);
+            } catch (error) {
+                console.error(`Anthropic LLM provider failed`, error);
+            }
         }
 
-        // Initialize the selected provider
-        if (this.provider === 'openai' && this.hasOpenAI) {
-            this.openai = new OpenAI({
-                apiKey: openAIKey,
-                baseURL: process.env.OPENAI_HOST || undefined,
-            });
-        } else if (this.provider === 'anthropic' && this.hasAnthropic) {
-            this.anthropic = new Anthropic({
-                apiKey: anthropicKey,
-                baseURL: process.env.ANTHROPIC_HOST || undefined,
-            });
-        }
-
-        console.log(`Using LLM provider: ${this.provider}`);
     }
 
     getAvailableProviders(): Array<{ name: LLMProvider; available: boolean }> {
@@ -160,7 +155,8 @@ export class LLMService {
 
     async parseDecomposition(params: ParseDecompositionParams): Promise<DecompositionBlock[]> {
         const { provider, decompositionText, tShirtsToSPMapping } = params;
-        const useProvider = provider || this.provider;
+        const envProvider = process.env.DEFAULT_LLM_PROVIDER as LLMProvider;
+        const useProvider = provider || envProvider;
         console.log(`Parsing decomposition using provider: ${useProvider}`);
         switch (useProvider) {
             case 'openai':
@@ -182,7 +178,7 @@ export class LLMService {
 
         try {
             const response = await this.openai.chat.completions.create({
-                model: 'gpt-4',
+                model: process.env.OPENAI_MODEL || 'gpt-4',
                 messages: [
                     { role: 'system', content: getSystemPrompt() },
                     { role: 'user', content: prompt },
@@ -223,7 +219,7 @@ export class LLMService {
             // </important_do_not_delete>
 
             const response = await this.anthropic.messages.create({
-                model: DEFAULT_MODEL_STR,
+                model: process.env.ANTHROPIC_MODEL || DEFAULT_MODEL_STR,
                 max_tokens: 10000,
                 system: getSystemPrompt(),
                 messages: [
