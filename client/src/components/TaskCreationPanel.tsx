@@ -101,11 +101,17 @@ export const TaskCreationPanel = ({
                 <div className="p-0 space-y-2">
                     {tasks.map((task, index) => {
                         const category = getRepositoryCategory(task.taskInfo?.repository || null);
+                        // При отсутствии оценки берем оценку от LLM
+                        const estimation = task.taskInfo?.estimation || task.taskInfo?.estimationByLLM?.estimation || null;
+                        // Показываем риск от LLM только если нет ручной оценки
+                        const risk = task.taskInfo?.estimation
+                            ? task.taskInfo?.risk || null
+                            : task.taskInfo?.estimationByLLM?.risk || null;
                         return (
-                            <div key={index} className="font-medium space-x-2">
+                            <div key={index} className="font-medium text-sm space-x-2">
                                 <span
-                                    className={`${getEstimationBgColor(task.taskInfo?.estimation || null)} text-black px-1 py-0 rounded text-md text-center w-8 inline-block border-gray-200 border`}>
-                                    {task.taskInfo?.estimation || '?'}
+                                    className={`${getEstimationBgColor(estimation)} text-black px-1 py-0 rounded text-md text-center w-8 inline-block border-gray-200 border`}>
+                                    {estimation || '?'}{risk ? '+' : null}
                                 </span>
                                 <Badge
                                     className={`text-sm ${category.bg} ${category.text} border-0`}

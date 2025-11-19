@@ -6,6 +6,12 @@ export interface Estimation {
     tasksWithLLMEstimation: number;
     formula: string;
     riskFormula: string;
+    llm: {
+        baseEstimation: number;
+        risks: number;
+        formula: string;
+        riskFormula: string;
+    } | null
 }
 
 export type LLMProvider = 'openai' | 'anthropic' | 'regexp';

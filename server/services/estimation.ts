@@ -3,8 +3,16 @@ import path from 'path';
 import { EstimationMapping, DecompositionBlock } from 'shared/schema';
 import { Estimation } from 'shared/types.ts';
 
+const defaultMapping: EstimationMapping = {
+    XS: 0.5,
+    S: 1,
+    M: 2,
+    L: 3,
+    XL: 5,
+};
+
 export class EstimationService {
-    private mapping: EstimationMapping | undefined;
+    private mapping: EstimationMapping = defaultMapping;
 
     constructor() {
         this.loadMapping();
@@ -16,14 +24,7 @@ export class EstimationService {
             const configFile = fs.readFileSync(configPath, 'utf8');
             this.mapping = JSON.parse(configFile);
         } catch (error) {
-            // Default mapping if config file is not found
-            this.mapping = {
-                XS: 0.5,
-                S: 1,
-                M: 2,
-                L: 3,
-                XL: 5,
-            };
+            this.mapping = defaultMapping;
         }
     }
 
@@ -34,32 +35,64 @@ export class EstimationService {
         let risks = 0;
         let taskCount = 0;
         let tasksWithoutEstimation = 0;
-        let tasksWithLLMEstimation = 0;
         const estimations: string[] = [];
-        const riskItems: string[] = [];
+        const riskItems: (string | null)[] = [];
+
+        let baseLLMEstimation = 0;
+        let llmRisks = 0;
+        let tasksWithLLMEstimation = 0;
+        const llmEstimations: string[] = [];
+        const llmRiskItems: (string | null)[] = [];
 
         for (const block of taskBlocks) {
             if (!block.taskInfo) continue;
 
             taskCount++;
 
+            let hasHumanEstimation = false;
+            let hasLLMEstimation = false;
+
             if (block.taskInfo.estimation && block.taskInfo.estimationSP) {
                 baseEstimation += block.taskInfo.estimationSP;
                 estimations.push(block.taskInfo.estimation);
-            } else if (block.taskInfo.estimationByLLM?.estimation) {
-                // Use LLM estimation if no manual estimation
-                const llmEstimation = block.taskInfo.estimationByLLM.estimation;
-                const llmSP = this.mapping[llmEstimation] || 0;
-                baseEstimation += llmSP;
-                estimations.push(llmEstimation);
-                tasksWithLLMEstimation++;
-            } else if (block.taskInfo.estimation === '?' || !block.taskInfo.estimation) {
-                tasksWithoutEstimation++;
+                if (block.taskInfo.risk && block.taskInfo.riskSP) {
+                    risks += block.taskInfo.riskSP;
+                    riskItems.push(block.taskInfo.risk);
+                }
+                hasHumanEstimation = true;
             }
 
-            if (block.taskInfo.risk && block.taskInfo.riskSP) {
-                risks += block.taskInfo.riskSP;
-                riskItems.push(block.taskInfo.risk);
+            if (block.taskInfo.estimationByLLM?.estimation) {
+                const llmEstimation = block.taskInfo.estimationByLLM.estimation;
+                const llmSP = this.mapping?.[llmEstimation] || 0;
+                baseLLMEstimation += llmSP;
+                llmEstimations.push(llmEstimation);
+                // Если оценка есть только от LLM, добавляем её в общую оценку
+                if (!hasHumanEstimation) {
+                    baseEstimation += llmSP;
+                    estimations.push(llmEstimation);
+                }
+                hasLLMEstimation = true;
+            }
+
+            if (block.taskInfo.estimationByLLM?.risk) {
+                const llmRisk = block.taskInfo.estimationByLLM.risk;
+                const llmRiskSP = llmRisk ? this.mapping[llmRisk] || 0 : 0;
+                llmRisks += llmRiskSP;
+                llmRiskItems.push(llmRisk);
+                // Если оценка есть только от LLM, добавляем её в общую оценку
+                if (!hasHumanEstimation) {
+                    risks += llmRiskSP;
+                    riskItems.push(llmRisk);
+                }
+            }
+
+            if (!hasHumanEstimation && hasLLMEstimation) {
+                tasksWithLLMEstimation++;
+            }
+
+            if (!hasHumanEstimation && !hasLLMEstimation) {
+                tasksWithoutEstimation++;
             }
         }
 
@@ -70,6 +103,11 @@ export class EstimationService {
         const formula = this.createFormula(estimationCounts, baseEstimation);
         const riskFormula = this.createFormula(riskCounts, risks);
 
+        const llmEstimationCounts = this.countItems(llmEstimations);
+        const llmRiskCounts = this.countItems(llmRiskItems);
+        const llmFormula = this.createFormula(llmEstimationCounts, baseLLMEstimation);
+        const llmRiskFormula = this.createFormula(llmRiskCounts, llmRisks);
+
         return {
             baseEstimation,
             risks,
@@ -78,6 +116,14 @@ export class EstimationService {
             tasksWithLLMEstimation,
             formula,
             riskFormula,
+            llm: baseLLMEstimation
+                ? {
+                    baseEstimation: baseLLMEstimation,
+                    risks: llmRisks,
+                    formula: llmFormula,
+                    riskFormula: llmRiskFormula,
+                }
+                : null
         };
     }
 
@@ -107,10 +153,10 @@ export class EstimationService {
         return deliveryDate;
     }
 
-    private countItems(items: string[]): Record<string, number> {
+    private countItems(items: (string | null)[]): Record<string, number> {
         const counts: Record<string, number> = {};
         for (const item of items) {
-            counts[item] = (counts[item] || 0) + 1;
+            counts[item || 'null'] = (counts[item || 'null'] || 0) + 1;
         }
         return counts;
     }

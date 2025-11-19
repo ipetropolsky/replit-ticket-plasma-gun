@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from 'src/components/ui/card
 import { Input } from 'src/components/ui/input';
 import { Label } from 'src/components/ui/label';
 import { Estimation } from 'shared/types.ts';
+import { Bot, CheckCircle2 } from 'lucide-react';
 
 interface EstimationSummaryProps {
     estimation: Estimation | null;
@@ -253,12 +254,24 @@ export const EstimationSummary = ({
                     </div>
                     <div className="text-muted-foreground">
                         Базовая оценка: <span className="font-medium text-foreground">{estimation.baseEstimation} SP</span>
+                        {estimation.llm && (<>
+                            {estimation.llm.baseEstimation === estimation.baseEstimation
+                                ? <span> <CheckCircle2 className="h-5 w-5 text-green-600 inline relative -top-[2px]" /></span>
+                                : <span className="text-blue-600"> (<Bot className="h-5 w-5 text-blue-600 inline relative -top-[2px]" />: {estimation.llm.baseEstimation} SP)</span>
+                            }
+                        </>)}
                     </div>
                     <div className="text-muted-foreground">
                         Встроенные риски: <span className="font-medium text-foreground">{estimation.risks} SP</span>
+                        {estimation.llm && (<>
+                            {estimation.llm.risks === estimation.risks
+                                ? <span> <CheckCircle2 className="h-5 w-5 text-green-600 inline relative -top-[2px]" /></span>
+                                : <span className="text-blue-600"> (<Bot className="h-5 w-5 text-blue-600 inline relative -top-[2px]" />: {estimation.llm.risks} SP)</span>
+                            }
+                        </>)}
                     </div>
                     <div className="text-muted-foreground">
-                        Дополнительные риски: <span className="font-medium text-foreground">{additionalRisks} SP</span>
+                        Дополнительные риски: <span className="font-medium text-foreground">{additionalRisks} SP ({additionalRiskPercent}%)</span>
                     </div>
                     <div className="text-muted-foreground">
                         Количество рабочих дней: <span className="font-medium text-foreground">{workingDays}</span>
